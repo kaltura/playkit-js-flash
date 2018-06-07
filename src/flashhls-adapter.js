@@ -1,5 +1,5 @@
 // @flow
-import {EventType,EventManager, FakeEventTarget, Utils, FakeEvent} from "playkit-js";
+import {EventType,EventManager, FakeEventTarget, Utils, FakeEvent,Error} from "playkit-js";
 import FlashAPI from "./flash-api";
 
 /**
@@ -13,6 +13,10 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   _src: PKMediaSourceObject;
   _startTime: number;
   _firstPlay : boolean = true;
+  _initalVolume: number;
+  _waitingForLoad: boolean;
+  _waitingForPlay: boolean;
+  _loadReported: boolean = false;
   /**
    * The event manager of the engine.
    * @type {EventManager}
@@ -71,11 +75,17 @@ export default class FlashHLSAdapter extends FakeEventTarget{
     return `${objTag}${attrsString}>${paramsString}</object>`;
   }
 
-  constructor(source:PKMediaSourceObject, config: Object){
+  constructor(source: PKMediaSourceObject, config: Object){
     super();
     this._config = config;
     this._src = source;
 
+  }
+
+  destroy(): void {
+    if (this._el){
+      this._el.innerHTML = '';
+    }
   }
 
   attach(_el: HTMLDivElement): HTMLDivElement {
@@ -84,8 +94,17 @@ export default class FlashHLSAdapter extends FakeEventTarget{
     this._el.innerHTML = FlashHLSAdapter.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1',{callback:'flashlsCallback'})
 
     let flashlsEvents = {
-      ready:(time) => {
+      ready:() => {
         this._api = new FlashAPI(this._el.firstElementChild);
+        if (this._initalVolume != null){
+          this.volume(this._initalVolume);
+        }
+        if (this._waitingForLoad) {
+          this.load();
+        }
+        if (this._waitingForPlay) {
+          this.play();
+        }
         if (this._config.debug) {
           this._api.playerSetLogDebug(true);
           this._api.playerSetLogDebug2(true);
@@ -93,8 +112,12 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       },
       videoSize:(width,heigh)=>{},
       levelLoaded:(loadmetrics)=>{
-        this._trigger(EventType.TRACKS_CHANGED,loadmetrics);
-        this._trigger(EventType.LOADED_METADATA,loadmetrics);
+        if (!this._loadReported) {
+          this._trigger(EventType.TRACKS_CHANGED, loadmetrics);
+          this._trigger(EventType.LOADED_DATA, loadmetrics);
+          this._trigger(EventType.LOADED_METADATA, loadmetrics);
+          this._loadReported = true;
+        }
       },
       complete:()=>{
         this._trigger(EventType.ENDED);
@@ -104,6 +127,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
 
       },
       error:(code, url, message)=>{
+        debugger;
         const error = new Error(
           Error.Severity.CRITICAL,
           Error.Category.MEDIA,
@@ -115,20 +139,33 @@ export default class FlashHLSAdapter extends FakeEventTarget{
         this._trigger(EventType.ERROR,error);
       },
       manifest:(duration, levels_, loadmetrics)=>{
-        this._trigger(EventType.LOADED_DATA,loadmetrics);
+
+      },
+      seekState: (newState) =>{
+        if (newState === 'SEEKING') {
+            this._trigger(EventType.SEEKING);
+            this._trigger(EventType.WAITING);
+          }
+          if (newState === 'SEEKED') {
+            this._trigger(EventType.SEEKED);
+
+          }
 
       },
       state:(newState) => {
         //IDLE/PLAYING/PAUSED/PLAYING_BUFFERING/PAUSED_BUFFERING
         switch(newState){
-
-          case "PLAYING_BUFFERING":
+          case "IDLE":
+            this._trigger(EventType.WAITING);
+            return;
           case "PLAYING":
             this._trigger(EventType.PLAYING);
             this._firstPlay = false;
             break;
 
           case "PAUSED_BUFFERING":
+            this._trigger(EventType.WAITING);
+            break;
           case "PAUSED":
             this._trigger(EventType.PAUSE);
             break;
@@ -157,17 +194,27 @@ export default class FlashHLSAdapter extends FakeEventTarget{
    */
 
   load(startTime: ?number): void{
-    this._startTime = startTime;
-    this._api.load(this._src.url);
+    if (startTime) {
+      this._startTime = startTime;
+    }
+    if (this._api) {
+      this._api.load(this._src.url);
+    } else {
+      this._waitingForLoad = true;
+    }
   }
 
   play(){
-    if (this._firstPlay) {
-      this._api.play(this._startTime ? this._startTime : -1);
+    if (this._api) {
+      if (this._firstPlay) {
+        this._api.play(this._startTime ? this._startTime : -1);
+      } else {
+        this._api.resume();
+      }
+      this._trigger(EventType.PLAY);
     } else {
-      this._api.resume();
+      this._waitingForPlay = true;
     }
-    this._trigger(EventType.PLAY);
   }
 
   pause(){
@@ -179,7 +226,13 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   }
 
   volume(vol: number): void {
-   // this._api.volume(vol);
+    if (this._api){
+      this._api.volume(vol*100);
+      this._trigger(EventType.VOLUME_CHANGE);
+    } else {
+      this._initalVolume = vol;
+    }
+
   }
 
   getDuration(): number {

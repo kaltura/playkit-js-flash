@@ -132,6 +132,16 @@ export default class Flash extends FakeEventTarget implements IEngine {
     this.src = source.url;
   }
 
+  reset(): void {
+
+  }
+
+  destroy(): void {
+    if (this._api) {
+      this._api.destroy();
+    }
+  }
+
   _addBindings(): void{
     if (this._api) {
       // this._eventManager.listen(this._api, CustomEventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
@@ -154,6 +164,10 @@ export default class Flash extends FakeEventTarget implements IEngine {
       this._eventManager.listen(this._api, EventType.LOADED_METADATA, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.LOADED_DATA, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.PLAY, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.VOLUME_CHANGE, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.WAITING, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.SEEKING, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.SEEKED, (event: FakeEvent) => this.dispatchEvent(event));
     }
   }
 
@@ -268,6 +282,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
   set volume(vol: number): void {
     this._volume = vol;
     this._api.volume(vol);
+
   }
 
   /**
@@ -359,5 +374,24 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   get defaultMuted(): boolean {
     return false;
+  }
+
+  /**
+   * Get the start time of DVR window in live playback in seconds.
+   * @returns {Number} - start time of DVR window.
+   * @public
+   */
+  getStartTimeOfDvrWindow(): number {
+    return  0;
+  }
+
+  /**
+   * Seeking to live edge.
+   * @function seekToLiveEdge
+   * @returns {void}
+   * @public
+   */
+  seekToLiveEdge(): void {
+    this.currentTime = this.duration;
   }
 }

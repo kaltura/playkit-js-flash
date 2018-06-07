@@ -1,2 +1,1216 @@
-!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(require("playkit-js")):"function"==typeof define&&define.amd?define(["playkit-js"],t):"object"==typeof exports?exports.flash=t(require("playkit-js")):(e.playkit=e.playkit||{},e.playkit.flash=t(e.KalturaPlayer.core))}(this,function(e){return function(e){function t(i){if(n[i])return n[i].exports;var a=n[i]={i:i,l:!1,exports:{}};return e[i].call(a.exports,a,a.exports,t),a.l=!0,a.exports}var n={};return t.m=e,t.c=n,t.d=function(e,n,i){t.o(e,n)||Object.defineProperty(e,n,{configurable:!1,enumerable:!0,get:i})},t.n=function(e){var n=e&&e.__esModule?function(){return e.default}:function(){return e};return t.d(n,"a",n),n},t.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},t.p="",t(t.s=1)}([function(t,n){t.exports=e},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.NAME=t.VERSION=void 0;var i=n(0),a=n(2),r=function(e){return e&&e.__esModule?e:{default:e}}(a);t.default=r.default,t.VERSION="1.0.1",t.NAME="playkit-js-flash";r.default.runCapabilities(),r.default.getCapabilities().then(function(e){e.flash.isSupported&&i.Engines.push(r.default)})},function(e,t,n){"use strict";function i(e){return e&&e.__esModule?e:{default:e}}function a(e,t,n){return t in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function r(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function u(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function o(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}Object.defineProperty(t,"__esModule",{value:!0});var l=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),s=n(0),c=n(3),f=i(c),h=n(4),p=i(h),v=function(e){function t(e,n){r(this,t);var i=u(this,(t.__proto__||Object.getPrototypeOf(t)).call(this));return i._eventManager=new s.EventManager,i._api=new p.default(e,n),i._el=i._api.attach(i._el),i._addBindings(),i.src=e.url,i}return o(t,e),l(t,null,[{key:"createEngine",value:function(e,t){return new this(e,t)}},{key:"canPlaySource",value:function(e,t){return!0}},{key:"runCapabilities",value:function(){t._capabilities.forEach(function(e){return e.runCapability()})}},{key:"getCapabilities",value:function(){var e=[];return t._capabilities.forEach(function(t){return e.push(t.getCapability())}),Promise.all(e).then(function(e){var n={};return e.forEach(function(e){return Object.assign(n,e)}),a({},t.id,n)})}},{key:"prepareVideoElement",value:function(){}}]),l(t,[{key:"_addBindings",value:function(){var e=this;this._api&&(this._eventManager.listen(this._api,s.EventType.TRACKS_CHANGED,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.ERROR,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.TIME_UPDATE,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.PLAYING,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.TIME_UPDATE,function(t){e.dispatchEvent(t),e._currentTime=t.payload.position,e._duration=t.payload.duration,e._buffer=t.payload.buffer,e._watched=t.payload.watched}),this._eventManager.listen(this._api,s.EventType.PAUSE,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.LOADED_METADATA,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.LOADED_DATA,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.PLAY,function(t){return e.dispatchEvent(t)}),this._eventManager.listen(this._api,s.EventType.VOLUME_CHANGE,function(t){return e.dispatchEvent(t)}))}},{key:"getVideoElement",value:function(){return this._el}},{key:"load",value:function(e){var t=this;this._api.load(e),this._loadPromise=new Promise(function(e){t._eventManager.listenOnce(t._api,s.EventType.TRACKS_CHANGED,function(){e()})})}},{key:"play",value:function(){var e=this;this._loadPromise||this.load(),this._loadPromise.then(function(){e._api.play()}),window.api=this._api}},{key:"pause",value:function(){this._api.pause()}},{key:"isLive",value:function(){return!1}},{key:"src",set:function(e){this._src=e},get:function(){return this._src?this._src:""}},{key:"currentTime",get:function(){return this._currentTime?this._currentTime:0},set:function(e){this._api.seek(e)}},{key:"duration",get:function(){return this._api.getDuration()}},{key:"volume",set:function(e){this._volume=e,this._api.volume(e)},get:function(){return this._volume}},{key:"paused",get:function(){return!1}},{key:"seeking",get:function(){return!1}},{key:"seekable",get:function(){return 0}},{key:"played",get:function(){return this._watched}},{key:"buffered",get:function(){var e=this;return{length:1,start:function(){return 0},end:function(){return e._buffer}}}},{key:"muted",set:function(e){e?(this._volumeBeforeMute=this.volume,this.volume=0):this._volumeBeforeMute?this.volume=this._volumeBeforeMute:this.volume=1},get:function(){return 0==this.volume}},{key:"defaultMuted",get:function(){return!1}}]),t}(s.FakeEventTarget);v._capabilities=[f.default],v.id="flash",t.default=v},function(e,t,n){"use strict";function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0});var a=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=(n(0),function(){function e(){i(this,e)}return a(e,null,[{key:"runCapability",value:function(){var t="0,0,0";try{t=new window.ActiveXObject("ShockwaveFlash.ShockwaveFlash").GetVariable("$version").replace(/\D+/g,",").match(/^,?(.+),?$/)[1]}catch(e){try{navigator.mimeTypes["application/x-shockwave-flash"].enabledPlugin&&(t=(navigator.plugins["Shockwave Flash 2.0"]||navigator.plugins["Shockwave Flash"]).description.replace(/\D+/g,",").match(/^,?(.+),?$/)[1])}catch(e){}}e._result=t.split(",")[0]>=10}},{key:"getCapability",value:function(){return Promise.resolve({isSupported:e._result})}}]),e}());t.default=r},function(e,t,n){"use strict";function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function a(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function r(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}Object.defineProperty(t,"__esModule",{value:!0});var u=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),o=n(0),l=n(5),s=function(e){return e&&e.__esModule?e:{default:e}}(l),c=function(e){function t(e,n){i(this,t);var r=a(this,(t.__proto__||Object.getPrototypeOf(t)).call(this));return r._firstPlay=!0,r._config=n,r._src=e,r}return r(t,e),u(t,null,[{key:"getFlashCode",value:function(e,t,n,i){var a="",r="",u="";return t&&Object.getOwnPropertyNames(t).forEach(function(e){a+=e+"="+t[e]+"&amp;"}),n=o.Utils.Object.mergeDeep({movie:e,flashvars:a,allowScriptAccess:"always",allowNetworking:"all",wmode:"transparent",bgColor:"#0",quality:"autohigh"},n),Object.getOwnPropertyNames(n).forEach(function(e){r+='<param name="'+e+'" value="'+n[e]+'" />'}),i=o.Utils.Object.mergeDeep({data:e,width:"100%",height:"100%"},i),Object.getOwnPropertyNames(i).forEach(function(e){u+=e+'="'+i[e]+'" '}),'<object type="application/x-shockwave-flash" '+u+">"+r+"</object>"}}]),u(t,[{key:"attach",value:function(e){var n=this;this._el=e,this._el=o.Utils.Dom.createElement("div"),this._el.innerHTML=t.getFlashCode("http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1",{callback:"flashlsCallback"});var i={ready:function(e){n._api=new s.default(n._el.firstElementChild),null!=n._initalVolume&&n.volume(n._initalVolume),n._waitingForLoad&&n.load(),n._waitingForPlay&&n.play(),n._config.debug&&(n._api.playerSetLogDebug(!0),n._api.playerSetLogDebug2(!0))},videoSize:function(e,t){},levelLoaded:function(e){n._trigger(o.EventType.TRACKS_CHANGED,e),n._trigger(o.EventType.LOADED_METADATA,e)},complete:function(){n._trigger(o.EventType.ENDED)},position:function(e){n._trigger(o.EventType.TIME_UPDATE,e)},error:function(e,t,i){var a=new Error(Error.Severity.CRITICAL,Error.Category.MEDIA,Error.Code.VIDEO_ERROR,{code:e,extended:t,message:i});n._trigger(o.EventType.ERROR,a)},manifest:function(e,t,i){n._trigger(o.EventType.LOADED_DATA,i)},state:function(e){switch(e){case"PLAYING_BUFFERING":case"PLAYING":n._trigger(o.EventType.PLAYING),n._firstPlay=!1;break;case"PAUSED_BUFFERING":case"PAUSED":n._trigger(o.EventType.PAUSE)}}};return window.flashlsCallback=function(e,t){i[e]&&i[e].apply(null,t)},this._el}},{key:"load",value:function(e){e&&(this._startTime=e),this._api?this._api.load(this._src.url):this._waitingForLoad=!0}},{key:"play",value:function(){this._api?(this._firstPlay?this._api.play(this._startTime?this._startTime:-1):this._api.resume(),this._trigger(o.EventType.PLAY)):this._waitingForPlay=!0}},{key:"pause",value:function(){this._api.pause()}},{key:"seek",value:function(e){this._api.seek(e)}},{key:"volume",value:function(e){this._api?(this._api.volume(100*e),this._trigger(o.EventType.VOLUME_CHANGE)):this._initalVolume=e}},{key:"getDuration",value:function(){return this._api.getDuration()}},{key:"_trigger",value:function(e,t){this.dispatchEvent(new o.FakeEvent(e,t))}}]),t}(o.FakeEventTarget);t.default=c},function(e,t,n){"use strict";function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0});var a=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=function(){function e(t){i(this,e),this.flashObject=t}return a(e,[{key:"load",value:function(e){this.flashObject.playerLoad(e)}},{key:"play",value:function(e){this.flashObject.playerPlay(e)}},{key:"pause",value:function(){this.flashObject.playerPause()}},{key:"resume",value:function(){this.flashObject.playerResume()}},{key:"seek",value:function(e){this.flashObject.playerSeek(e)}},{key:"stop",value:function(){this.flashObject.playerStop()}},{key:"volume",value:function(e){this.flashObject.playerVolume(e)}},{key:"setCurrentLevel",value:function(e){this.flashObject.playerSetCurrentLevel(e)}},{key:"setNextLevel",value:function(e){this.flashObject.playerSetNextLevel(e)}},{key:"setLoadLevel",value:function(e){this.flashObject.playerSetLoadLevel(e)}},{key:"setMaxBufferLength",value:function(e){this.flashObject.playerSetmaxBufferLength(e)}},{key:"getPosition",value:function(){return this.flashObject.getPosition()}},{key:"getDuration",value:function(){return this.flashObject.getDuration()}},{key:"getbufferLength",value:function(){return this.flashObject.getbufferLength()}},{key:"getbackBufferLength",value:function(){return this.flashObject.getbackBufferLength()}},{key:"getLowBufferLength",value:function(){return this.flashObject.getlowBufferLength()}},{key:"getMinBufferLength",value:function(){return this.flashObject.getminBufferLength()}},{key:"getMaxBufferLength",value:function(){return this.flashObject.getmaxBufferLength()}},{key:"getLevels",value:function(){return this.flashObject.getLevels()}},{key:"getAutoLevel",value:function(){return this.flashObject.getAutoLevel()}},{key:"getCurrentLevel",value:function(){return this.flashObject.getCurrentLevel()}},{key:"getNextLevel",value:function(){return this.flashObject.getNextLevel()}},{key:"getLoadLevel",value:function(){return this.flashObject.getLoadLevel()}},{key:"getAudioTrackList",value:function(){return this.flashObject.getAudioTrackList()}},{key:"getStats",value:function(){return this.flashObject.getStats()}},{key:"setAudioTrack",value:function(e){this.flashObject.playerSetAudioTrack(e)}},{key:"playerSetLogDebug",value:function(e){this.flashObject.playerSetLogDebug(e)}},{key:"getLogDebug",value:function(){return this.flashObject.getLogDebug()}},{key:"playerSetLogDebug2",value:function(e){this.flashObject.playerSetLogDebug2(e)}},{key:"getLogDebug2",value:function(){return this.flashObject.getLogDebug2()}},{key:"playerSetUseHardwareVideoDecoder",value:function(e){this.flashObject.playerSetUseHardwareVideoDecoder(e)}},{key:"getUseHardwareVideoDecoder",value:function(){return this.flashObject.getUseHardwareVideoDecoder()}},{key:"playerSetflushLiveURLCache",value:function(e){this.flashObject.playerSetflushLiveURLCache(e)}},{key:"getflushLiveURLCache",value:function(){return this.flashObject.getflushLiveURLCache()}},{key:"playerSetJSURLStream",value:function(e){this.flashObject.playerSetJSURLStream(e)}},{key:"getJSURLStream",value:function(){return this.flashObject.getJSURLStream()}},{key:"playerCapLeveltoStage",value:function(e){this.flashObject.playerCapLeveltoStage(e)}},{key:"getCapLeveltoStage",value:function(){return this.flashObject.getCapLeveltoStage()}},{key:"playerSetAutoLevelCapping",value:function(e){this.flashObject.playerSetAutoLevelCapping(e)}},{key:"getAutoLevelCapping",value:function(){return this.flashObject.getAutoLevelCapping()}}]),e}();t.default=r}])});
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("playkit-js"));
+	else if(typeof define === 'function' && define.amd)
+		define(["playkit-js"], factory);
+	else if(typeof exports === 'object')
+		exports["flash"] = factory(require("playkit-js"));
+	else
+		root["playkit"] = root["playkit"] || {}, root["playkit"]["flash"] = factory(root["KalturaPlayer"]["core"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.NAME = exports.VERSION = undefined;
+
+var _playkitJs = __webpack_require__(0);
+
+var _flash = __webpack_require__(2);
+
+var _flash2 = _interopRequireDefault(_flash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = _flash2.default;
+exports.VERSION = "1.0.0";
+exports.NAME = "playkit-js-flash";
+
+
+var pluginName = "flash";
+_flash2.default.runCapabilities();
+_flash2.default.getCapabilities().then(function (capabilites) {
+  if (capabilites["flash"].isSupported) {
+    _playkitJs.Engines.push(_flash2.default);
+  }
+});
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _playkitJs = __webpack_require__(0);
+
+var _flashIsSupported = __webpack_require__(3);
+
+var _flashIsSupported2 = _interopRequireDefault(_flashIsSupported);
+
+var _flashhlsAdapter = __webpack_require__(4);
+
+var _flashhlsAdapter2 = _interopRequireDefault(_flashhlsAdapter);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/**
+ * Your class description.
+ * @classdesc
+ */
+var Flash = function (_FakeEventTarget) {
+  _inherits(Flash, _FakeEventTarget);
+
+  _createClass(Flash, null, [{
+    key: 'createEngine',
+
+    /**
+     * Factory method to create an engine.
+     * @param {PKMediaSourceObject} source - The selected source object.
+     * @param {Object} config - The player configuration.
+     * @returns {IEngine} - New instance of the run time engine.
+     * @public
+     * @static
+     */
+
+
+    /**
+     * The flash capabilities handlers.
+     * @private
+     * @static
+     */
+
+
+    /**
+     * The video element.
+     * @type {HTMLVideoElement}
+     * @private
+     */
+    value: function createEngine(source, config) {
+      return new this(source, config);
+    }
+
+    /**
+     * Checks if the engine can play a given source.
+     * @param {PKMediaSourceObject} source - The source object to check.
+     * @param {boolean} preferNative - prefer native flag
+     * @returns {boolean} - Whether the engine can play the source.
+     * @public
+     * @static
+     */
+
+
+    /**
+     * The event manager of the engine.
+     * @type {EventManager}
+     * @private
+     */
+
+  }, {
+    key: 'canPlaySource',
+    value: function canPlaySource(source, preferNative) {
+      return true;
+    }
+
+    /**
+     * Runs the html5 capabilities tests.
+     * @returns {void}
+     * @public
+     * @static
+     */
+
+  }, {
+    key: 'runCapabilities',
+    value: function runCapabilities() {
+      Flash._capabilities.forEach(function (capability) {
+        return capability.runCapability();
+      });
+    }
+
+    /**
+     * Gets the flash capabilities.
+     * @return {Promise<Object>} - The html5 capabilities object.
+     * @public
+     * @static
+     */
+
+  }, {
+    key: 'getCapabilities',
+    value: function getCapabilities() {
+      var promises = [];
+      Flash._capabilities.forEach(function (capability) {
+        return promises.push(capability.getCapability());
+      });
+      return Promise.all(promises).then(function (arrayOfResults) {
+        var mergedResults = {};
+        arrayOfResults.forEach(function (res) {
+          return Object.assign(mergedResults, res);
+        });
+        return _defineProperty({}, Flash.id, mergedResults);
+      });
+    }
+    /**
+     * For browsers which block auto play, use the user gesture to open the video element and enable playing via API.
+     * @returns {void}
+     * @private
+     * @public
+     */
+
+  }, {
+    key: 'prepareVideoElement',
+    value: function prepareVideoElement() {}
+    // Flash._el = Utils.Dom.createElement('div');
+    // Flash._el.innerHTML = Flash.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1')
+
+    /**
+     * @constructor
+     * @param {PKMediaSourceObject} source - The selected source object.
+     * @param {Object} config - The player configuration.
+     */
+
+  }]);
+
+  function Flash(source, config) {
+    _classCallCheck(this, Flash);
+
+    var _this = _possibleConstructorReturn(this, (Flash.__proto__ || Object.getPrototypeOf(Flash)).call(this));
+
+    _this._eventManager = new _playkitJs.EventManager();
+    _this._api = new _flashhlsAdapter2.default(source, config);
+    _this._el = _this._api.attach(_this._el);
+    _this._addBindings();
+    _this.src = source.url;
+    return _this;
+  }
+
+  _createClass(Flash, [{
+    key: 'reset',
+    value: function reset() {}
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      if (this._api) {
+        this._api.destroy();
+      }
+    }
+  }, {
+    key: '_addBindings',
+    value: function _addBindings() {
+      var _this2 = this;
+
+      if (this._api) {
+        // this._eventManager.listen(this._api, CustomEventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+        // this._eventManager.listen(this._api, CustomEventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+        // this._eventManager.listen(this._api, CustomEventType.TEXT_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+        // this._eventManager.listen(this._api, CustomEventType.ABR_MODE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+        // this._eventManager.listen(this._api, CustomEventType.TEXT_CUE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+        this._eventManager.listen(this._api, _playkitJs.EventType.TRACKS_CHANGED, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.ERROR, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.TIME_UPDATE, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.PLAYING, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.TIME_UPDATE, function (event) {
+          _this2.dispatchEvent(event);
+          _this2._currentTime = event.payload.position;
+          _this2._duration = event.payload.duration;
+          _this2._buffer = event.payload.buffer;
+          _this2._watched = event.payload.watched;
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.PAUSE, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.LOADED_METADATA, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.LOADED_DATA, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.PLAY, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.VOLUME_CHANGE, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.WAITING, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.SEEKING, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+        this._eventManager.listen(this._api, _playkitJs.EventType.SEEKED, function (event) {
+          return _this2.dispatchEvent(event);
+        });
+      }
+    }
+
+    /**
+     * @returns {HTMLVideoElement} - The video element.
+     * @public
+     */
+
+  }, {
+    key: 'getVideoElement',
+    value: function getVideoElement() {
+      return this._el;
+    }
+
+    /**
+     * Set a source.
+     * @param {string} source - Source to set.
+     * @public
+     * @returns {void}
+     */
+
+  }, {
+    key: 'load',
+
+
+    /**
+     * Load media.
+     * @param {number} startTime - Optional time to start the video from.
+     * @public
+     * @returns {Promise<Object>} - The loaded data
+     */
+    value: function load(startTime) {
+      var _this3 = this;
+
+      this._api.load(startTime);
+      this._loadPromise = new Promise(function (resolve) {
+        _this3._eventManager.listenOnce(_this3._api, _playkitJs.EventType.TRACKS_CHANGED, function () {
+          resolve();
+        });
+      });
+    }
+
+    /**
+     * Start/resume playback.
+     * @public
+     * @returns {void}
+     */
+
+  }, {
+    key: 'play',
+    value: function play() {
+      var _this4 = this;
+
+      if (!this._loadPromise) {
+        this.load();
+      }
+      this._loadPromise.then(function () {
+        _this4._api.play();
+      });
+      window.api = this._api;
+    }
+  }, {
+    key: 'pause',
+    value: function pause() {
+      this._api.pause();
+    }
+
+    /**
+     * Checking if the current playback is live.
+     * @function isLive
+     * @returns {boolean} - Whether playback is live.
+     * @public
+     */
+
+  }, {
+    key: 'isLive',
+    value: function isLive() {
+      return false;
+    }
+
+    /**
+     * Get the current time in seconds.
+     * @returns {Number} - The current playback time.
+     * @public
+     */
+
+  }, {
+    key: 'getStartTimeOfDvrWindow',
+
+
+    /**
+     * Get the start time of DVR window in live playback in seconds.
+     * @returns {Number} - start time of DVR window.
+     * @public
+     */
+    value: function getStartTimeOfDvrWindow() {
+      return 0;
+    }
+
+    /**
+     * Seeking to live edge.
+     * @function seekToLiveEdge
+     * @returns {void}
+     * @public
+     */
+
+  }, {
+    key: 'seekToLiveEdge',
+    value: function seekToLiveEdge() {
+      this.currentTime = this.duration;
+    }
+  }, {
+    key: 'src',
+    set: function set(source) {
+      this._src = source;
+    }
+
+    /**
+     * Get the source url.
+     * @returns {string} - The source url.
+     * @public
+     */
+    ,
+    get: function get() {
+      if (this._src) {
+        return this._src;
+      }
+      return "";
+    }
+  }, {
+    key: 'currentTime',
+    get: function get() {
+      return this._currentTime ? this._currentTime : 0;
+    }
+
+    /**
+     * Set the current time in seconds.
+     * @param {Number} to - The number to set in seconds.
+     * @public
+     * @returns {void}
+     */
+    ,
+    set: function set(to) {
+      this._api.seek(to);
+    }
+
+    /**
+     * Get the duration in seconds.
+     * @returns {Number} - The playback duration.
+     * @public
+     */
+
+  }, {
+    key: 'duration',
+    get: function get() {
+      return this._api.getDuration();
+    }
+    /**
+     * Set playback volume.
+     * @param {Number} vol - The volume to set.
+     * @public
+     * @returns {void}
+     */
+
+  }, {
+    key: 'volume',
+    set: function set(vol) {
+      this._volume = vol;
+      this._api.volume(vol);
+    }
+
+    /**
+     * Get playback volume.
+     * @returns {Number} - The volume value of the video element.
+     * @public
+     */
+    ,
+    get: function get() {
+      return this._volume;
+    }
+
+    /**
+     * Get paused state.
+     * @returns {boolean} - The paused value of the video element.
+     * @public
+     */
+
+  }, {
+    key: 'paused',
+    get: function get() {
+      return false;
+    }
+
+    /**
+     * Get seeking state.
+     * @returns {boolean} - The seeking value of the video element.
+     * @public
+     */
+
+  }, {
+    key: 'seeking',
+    get: function get() {
+      return false;
+    }
+
+    /**
+     * Get the first seekable range (part) of the video in seconds.
+     * @returns {TimeRanges} - First seekable range (part) of the video in seconds.
+     * @public
+     */
+
+  }, {
+    key: 'seekable',
+    get: function get() {
+      return 0;
+    }
+
+    /**
+     * Get the first played range (part) of the video in seconds.
+     * @returns {TimeRanges} - First played range (part) of the video in seconds.
+     * @public
+     */
+
+  }, {
+    key: 'played',
+    get: function get() {
+      return this._watched;
+    }
+
+    /**
+     * Get the first buffered range (part) of the video in seconds.
+     * @returns {TimeRanges} - First buffered range (part) of the video in seconds.
+     * @public
+     */
+
+  }, {
+    key: 'buffered',
+    get: function get() {
+      var _this5 = this;
+
+      return { length: 1, start: function start() {
+          return 0;
+        }, end: function end() {
+          return _this5._buffer;
+        } };
+    }
+
+    /**
+     * Set player muted state.
+     * @param {boolean} mute - The new mute value.
+     * @public
+     * @returns {void}
+     */
+
+  }, {
+    key: 'muted',
+    set: function set(mute) {
+      if (mute) {
+        this._volumeBeforeMute = this.volume;
+        this.volume = 0;
+      } else {
+        if (this._volumeBeforeMute) {
+          this.volume = this._volumeBeforeMute;
+        } else {
+          this.volume = 1;
+        }
+      }
+    }
+
+    /**
+     * Get player muted state.
+     * @returns {boolean} - The muted value of the video element.
+     * @public
+     */
+    ,
+    get: function get() {
+      return this.volume == 0;
+    }
+
+    /**
+     * Get the default mute value.
+     * @returns {boolean} - The defaultMuted of the video element.
+     * @public
+     */
+
+  }, {
+    key: 'defaultMuted',
+    get: function get() {
+      return false;
+    }
+  }]);
+
+  return Flash;
+}(_playkitJs.FakeEventTarget);
+
+Flash._capabilities = [_flashIsSupported2.default];
+Flash.id = "flash";
+exports.default = Flash;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _playkitJs = __webpack_require__(0);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var FlashIsSupported = function () {
+  function FlashIsSupported() {
+    _classCallCheck(this, FlashIsSupported);
+  }
+
+  _createClass(FlashIsSupported, null, [{
+    key: 'runCapability',
+
+
+    /***
+     * Runs the test for isSupported capability.
+     * @public
+     * @static
+     * @returns {void}
+     */
+    value: function runCapability() {
+      var version = '0,0,0';
+
+      try {
+        version = new window.ActiveXObject('ShockwaveFlash.ShockwaveFlash').GetVariable('$version').replace(/\D+/g, ',').match(/^,?(.+),?$/)[1];
+      } catch (e) {
+        try {
+          if (navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
+            version = (navigator.plugins['Shockwave Flash 2.0'] || navigator.plugins['Shockwave Flash']).description.replace(/\D+/g, ',').match(/^,?(.+),?$/)[1];
+          }
+        } catch (err) {
+          // ignore
+        }
+      }
+      FlashIsSupported._result = version.split(',')[0] >= 10;
+    }
+
+    /**
+     * Gets the test result for isSupported capability.
+     * @returns {Promise<CapabilityResult>} - The result object for isSupported capability.
+     * @static
+     * @public
+     */
+
+  }, {
+    key: 'getCapability',
+    value: function getCapability() {
+      return Promise.resolve({ isSupported: FlashIsSupported._result });
+    }
+  }]);
+
+  return FlashIsSupported;
+}();
+
+exports.default = FlashIsSupported;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _playkitJs = __webpack_require__(0);
+
+var _flashApi = __webpack_require__(5);
+
+var _flashApi2 = _interopRequireDefault(_flashApi);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/**
+ * Your class description.
+ * @classdesc
+ */
+var FlashHLSAdapter = function (_FakeEventTarget) {
+  _inherits(FlashHLSAdapter, _FakeEventTarget);
+
+  _createClass(FlashHLSAdapter, null, [{
+    key: "getFlashCode",
+
+    /**
+     * The event manager of the engine.
+     * @type {EventManager}
+     * @private
+     */
+    value: function getFlashCode(swf, flashVars, params, attributes) {
+      var objTag = '<object type="application/x-shockwave-flash" ';
+      var flashVarsString = '';
+      var paramsString = '';
+      var attrsString = '';
+
+      // Convert flash vars to string
+      if (flashVars) {
+        Object.getOwnPropertyNames(flashVars).forEach(function (key) {
+          flashVarsString += key + "=" + flashVars[key] + "&amp;";
+        });
+      }
+
+      // Add swf, flashVars, and other default params
+      params = _playkitJs.Utils.Object.mergeDeep({
+        movie: swf,
+        flashvars: flashVarsString,
+        // Required to talk to swf
+        allowScriptAccess: 'always',
+        // All should be default, but having security issues.
+        allowNetworking: 'all',
+        wmode: 'transparent',
+        bgColor: '#0',
+        quality: 'autohigh'
+
+      }, params);
+
+      // Create param tags string
+      Object.getOwnPropertyNames(params).forEach(function (key) {
+        paramsString += "<param name=\"" + key + "\" value=\"" + params[key] + "\" />";
+      });
+
+      attributes = _playkitJs.Utils.Object.mergeDeep({
+        // Add swf to attributes (need both for IE and Others to work)
+        data: swf,
+
+        // Default to 100% width/height
+        width: '100%',
+        height: '100%'
+
+      }, attributes);
+
+      // Create Attributes string
+      Object.getOwnPropertyNames(attributes).forEach(function (key) {
+        attrsString += key + "=\"" + attributes[key] + "\" ";
+      });
+
+      return "" + objTag + attrsString + ">" + paramsString + "</object>";
+    }
+  }]);
+
+  function FlashHLSAdapter(source, config) {
+    _classCallCheck(this, FlashHLSAdapter);
+
+    var _this = _possibleConstructorReturn(this, (FlashHLSAdapter.__proto__ || Object.getPrototypeOf(FlashHLSAdapter)).call(this));
+
+    _this._firstPlay = true;
+    _this._loadReported = false;
+
+    _this._config = config;
+    _this._src = source;
+
+    return _this;
+  }
+
+  _createClass(FlashHLSAdapter, [{
+    key: "destroy",
+    value: function destroy() {
+      if (this._el) {
+        this._el.innerHTML = '';
+      }
+    }
+  }, {
+    key: "attach",
+    value: function attach(_el) {
+      var _this2 = this;
+
+      this._el = _el;
+      this._el = _playkitJs.Utils.Dom.createElement('div');
+      this._el.innerHTML = FlashHLSAdapter.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1', { callback: 'flashlsCallback' });
+
+      var flashlsEvents = {
+        ready: function ready() {
+          _this2._api = new _flashApi2.default(_this2._el.firstElementChild);
+          if (_this2._initalVolume != null) {
+            _this2.volume(_this2._initalVolume);
+          }
+          if (_this2._waitingForLoad) {
+            _this2.load();
+          }
+          if (_this2._waitingForPlay) {
+            _this2.play();
+          }
+          if (_this2._config.debug) {
+            _this2._api.playerSetLogDebug(true);
+            _this2._api.playerSetLogDebug2(true);
+          }
+        },
+        videoSize: function videoSize(width, heigh) {},
+        levelLoaded: function levelLoaded(loadmetrics) {
+          if (!_this2._loadReported) {
+            _this2._trigger(_playkitJs.EventType.TRACKS_CHANGED, loadmetrics);
+            _this2._trigger(_playkitJs.EventType.LOADED_DATA, loadmetrics);
+            _this2._trigger(_playkitJs.EventType.LOADED_METADATA, loadmetrics);
+            _this2._loadReported = true;
+          }
+        },
+        complete: function complete() {
+          _this2._trigger(_playkitJs.EventType.ENDED);
+        },
+        position: function position(timemetrics) {
+          _this2._trigger(_playkitJs.EventType.TIME_UPDATE, timemetrics);
+        },
+        error: function error(code, url, message) {
+          debugger;
+          var error = new _playkitJs.Error(_playkitJs.Error.Severity.CRITICAL, _playkitJs.Error.Category.MEDIA, _playkitJs.Error.Code.VIDEO_ERROR, {
+            code: code,
+            extended: url,
+            message: message
+          });
+          _this2._trigger(_playkitJs.EventType.ERROR, error);
+        },
+        manifest: function manifest(duration, levels_, loadmetrics) {},
+        seekState: function seekState(newState) {
+          if (newState === 'SEEKING') {
+            _this2._trigger(_playkitJs.EventType.SEEKING);
+            _this2._trigger(_playkitJs.EventType.WAITING);
+          }
+          if (newState === 'SEEKED') {
+            _this2._trigger(_playkitJs.EventType.SEEKED);
+          }
+        },
+        state: function state(newState) {
+          //IDLE/PLAYING/PAUSED/PLAYING_BUFFERING/PAUSED_BUFFERING
+          switch (newState) {
+            case "IDLE":
+              _this2._trigger(_playkitJs.EventType.WAITING);
+              return;
+            case "PLAYING":
+              _this2._trigger(_playkitJs.EventType.PLAYING);
+              _this2._firstPlay = false;
+              break;
+
+            case "PAUSED_BUFFERING":
+              _this2._trigger(_playkitJs.EventType.WAITING);
+              break;
+            case "PAUSED":
+              _this2._trigger(_playkitJs.EventType.PAUSE);
+              break;
+
+          }
+        }
+
+      };
+      // Create a single global callback function and pass it's name
+      // to the SWF with the name `callback` in the FlashVars parameter.
+      window.flashlsCallback = function (eventName, args) {
+        // console.warn(eventName,args);
+        if (flashlsEvents[eventName]) {
+          flashlsEvents[eventName].apply(null, args);
+        }
+      };
+      return this._el;
+    }
+    /**
+     * Dispatch an adapter event forward.
+     * @param {string} name - The name of the event.
+     * @param {?Object} payload - The event payload.
+     * @returns {void}
+     */
+
+  }, {
+    key: "load",
+    value: function load(startTime) {
+      if (startTime) {
+        this._startTime = startTime;
+      }
+      if (this._api) {
+        this._api.load(this._src.url);
+      } else {
+        this._waitingForLoad = true;
+      }
+    }
+  }, {
+    key: "play",
+    value: function play() {
+      if (this._api) {
+        if (this._firstPlay) {
+          this._api.play(this._startTime ? this._startTime : -1);
+        } else {
+          this._api.resume();
+        }
+        this._trigger(_playkitJs.EventType.PLAY);
+      } else {
+        this._waitingForPlay = true;
+      }
+    }
+  }, {
+    key: "pause",
+    value: function pause() {
+      this._api.pause();
+    }
+  }, {
+    key: "seek",
+    value: function seek(to) {
+      this._api.seek(to);
+    }
+  }, {
+    key: "volume",
+    value: function volume(vol) {
+      if (this._api) {
+        this._api.volume(vol * 100);
+        this._trigger(_playkitJs.EventType.VOLUME_CHANGE);
+      } else {
+        this._initalVolume = vol;
+      }
+    }
+  }, {
+    key: "getDuration",
+    value: function getDuration() {
+      return this._api.getDuration();
+    }
+  }, {
+    key: "_trigger",
+    value: function _trigger(name, payload) {
+      this.dispatchEvent(new _playkitJs.FakeEvent(name, payload));
+    }
+  }]);
+
+  return FlashHLSAdapter;
+}(_playkitJs.FakeEventTarget);
+
+exports.default = FlashHLSAdapter;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var FlashAPI = function () {
+  function FlashAPI(flashObject) {
+    _classCallCheck(this, FlashAPI);
+
+    this.flashObject = flashObject;
+  }
+
+  _createClass(FlashAPI, [{
+    key: "load",
+    value: function load(url) {
+      this.flashObject.playerLoad(url);
+    }
+  }, {
+    key: "play",
+    value: function play(offset) {
+      this.flashObject.playerPlay(offset);
+    }
+  }, {
+    key: "pause",
+    value: function pause() {
+      this.flashObject.playerPause();
+    }
+  }, {
+    key: "resume",
+    value: function resume() {
+      this.flashObject.playerResume();
+    }
+  }, {
+    key: "seek",
+    value: function seek(offset) {
+      this.flashObject.playerSeek(offset);
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.flashObject.playerStop();
+    }
+  }, {
+    key: "volume",
+    value: function volume(_volume) {
+      this.flashObject.playerVolume(_volume);
+    }
+  }, {
+    key: "setCurrentLevel",
+    value: function setCurrentLevel(level) {
+      this.flashObject.playerSetCurrentLevel(level);
+    }
+  }, {
+    key: "setNextLevel",
+    value: function setNextLevel(level) {
+      this.flashObject.playerSetNextLevel(level);
+    }
+  }, {
+    key: "setLoadLevel",
+    value: function setLoadLevel(level) {
+      this.flashObject.playerSetLoadLevel(level);
+    }
+  }, {
+    key: "setMaxBufferLength",
+    value: function setMaxBufferLength(len) {
+      this.flashObject.playerSetmaxBufferLength(len);
+    }
+  }, {
+    key: "getPosition",
+    value: function getPosition() {
+      return this.flashObject.getPosition();
+    }
+  }, {
+    key: "getDuration",
+    value: function getDuration() {
+      return this.flashObject.getDuration();
+    }
+  }, {
+    key: "getbufferLength",
+    value: function getbufferLength() {
+      return this.flashObject.getbufferLength();
+    }
+  }, {
+    key: "getbackBufferLength",
+    value: function getbackBufferLength() {
+      return this.flashObject.getbackBufferLength();
+    }
+  }, {
+    key: "getLowBufferLength",
+    value: function getLowBufferLength() {
+      return this.flashObject.getlowBufferLength();
+    }
+  }, {
+    key: "getMinBufferLength",
+    value: function getMinBufferLength() {
+      return this.flashObject.getminBufferLength();
+    }
+  }, {
+    key: "getMaxBufferLength",
+    value: function getMaxBufferLength() {
+      return this.flashObject.getmaxBufferLength();
+    }
+  }, {
+    key: "getLevels",
+    value: function getLevels() {
+      return this.flashObject.getLevels();
+    }
+  }, {
+    key: "getAutoLevel",
+    value: function getAutoLevel() {
+      return this.flashObject.getAutoLevel();
+    }
+  }, {
+    key: "getCurrentLevel",
+    value: function getCurrentLevel() {
+      return this.flashObject.getCurrentLevel();
+    }
+  }, {
+    key: "getNextLevel",
+    value: function getNextLevel() {
+      return this.flashObject.getNextLevel();
+    }
+  }, {
+    key: "getLoadLevel",
+    value: function getLoadLevel() {
+      return this.flashObject.getLoadLevel();
+    }
+  }, {
+    key: "getAudioTrackList",
+    value: function getAudioTrackList() {
+      return this.flashObject.getAudioTrackList();
+    }
+  }, {
+    key: "getStats",
+    value: function getStats() {
+      return this.flashObject.getStats();
+    }
+  }, {
+    key: "setAudioTrack",
+    value: function setAudioTrack(trackId) {
+      this.flashObject.playerSetAudioTrack(trackId);
+    }
+  }, {
+    key: "playerSetLogDebug",
+    value: function playerSetLogDebug(state) {
+      this.flashObject.playerSetLogDebug(state);
+    }
+  }, {
+    key: "getLogDebug",
+    value: function getLogDebug() {
+      return this.flashObject.getLogDebug();
+    }
+  }, {
+    key: "playerSetLogDebug2",
+    value: function playerSetLogDebug2(state) {
+      this.flashObject.playerSetLogDebug2(state);
+    }
+  }, {
+    key: "getLogDebug2",
+    value: function getLogDebug2() {
+      return this.flashObject.getLogDebug2();
+    }
+  }, {
+    key: "playerSetUseHardwareVideoDecoder",
+    value: function playerSetUseHardwareVideoDecoder(state) {
+      this.flashObject.playerSetUseHardwareVideoDecoder(state);
+    }
+  }, {
+    key: "getUseHardwareVideoDecoder",
+    value: function getUseHardwareVideoDecoder() {
+      return this.flashObject.getUseHardwareVideoDecoder();
+    }
+  }, {
+    key: "playerSetflushLiveURLCache",
+    value: function playerSetflushLiveURLCache(state) {
+      this.flashObject.playerSetflushLiveURLCache(state);
+    }
+  }, {
+    key: "getflushLiveURLCache",
+    value: function getflushLiveURLCache() {
+      return this.flashObject.getflushLiveURLCache();
+    }
+  }, {
+    key: "playerSetJSURLStream",
+    value: function playerSetJSURLStream(state) {
+      this.flashObject.playerSetJSURLStream(state);
+    }
+  }, {
+    key: "getJSURLStream",
+    value: function getJSURLStream() {
+      return this.flashObject.getJSURLStream();
+    }
+  }, {
+    key: "playerCapLeveltoStage",
+    value: function playerCapLeveltoStage(state) {
+      this.flashObject.playerCapLeveltoStage(state);
+    }
+  }, {
+    key: "getCapLeveltoStage",
+    value: function getCapLeveltoStage() {
+      return this.flashObject.getCapLeveltoStage();
+    }
+  }, {
+    key: "playerSetAutoLevelCapping",
+    value: function playerSetAutoLevelCapping(level) {
+      this.flashObject.playerSetAutoLevelCapping(level);
+    }
+  }, {
+    key: "getAutoLevelCapping",
+    value: function getAutoLevelCapping() {
+      return this.flashObject.getAutoLevelCapping();
+    }
+  }]);
+
+  return FlashAPI;
+}();
+
+exports.default = FlashAPI;
+
+/***/ })
+/******/ ]);
+});
 //# sourceMappingURL=playkit-js-flash.js.map
