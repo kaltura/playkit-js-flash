@@ -43,6 +43,6 @@ export default class FlashIsSupported implements ICapability {
    * @public
    */
   static getCapability(): Promise<CapabilityResult> {
-    return Promise.resolve({isSupported: FlashIsSupported._result});
+    return Promise.resolve({isSupported: FlashIsSupported._result,autoplay: true, mutedAutoPlay: true});
   }
 }

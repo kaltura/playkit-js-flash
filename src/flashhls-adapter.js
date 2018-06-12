@@ -1,5 +1,5 @@
 // @flow
-import {EventType,EventManager, FakeEventTarget, Utils, FakeEvent,Error} from "playkit-js";
+import {EventType,EventManager, FakeEventTarget, Utils, FakeEvent,Error, AudioTrack, VideoTrack} from "playkit-js";
 import FlashAPI from "./flash-api";
 
 /**
@@ -84,7 +84,9 @@ export default class FlashHLSAdapter extends FakeEventTarget{
 
   destroy(): void {
     if (this._el){
+      this._el.parentNode.removeChild(this._el);
       this._el.innerHTML = '';
+
     }
   }
 
@@ -113,13 +115,13 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       videoSize:(width,heigh)=>{},
       levelLoaded:(loadmetrics)=>{
         if (!this._loadReported) {
-          this._trigger(EventType.TRACKS_CHANGED, loadmetrics);
           this._trigger(EventType.LOADED_DATA, loadmetrics);
           this._trigger(EventType.LOADED_METADATA, loadmetrics);
           this._loadReported = true;
         }
       },
       complete:()=>{
+        this._firstPlay = true;
         this._trigger(EventType.ENDED);
       },
       position:(timemetrics: Object) => {
@@ -127,7 +129,6 @@ export default class FlashHLSAdapter extends FakeEventTarget{
 
       },
       error:(code, url, message)=>{
-        debugger;
         const error = new Error(
           Error.Severity.CRITICAL,
           Error.Category.MEDIA,
@@ -139,7 +140,35 @@ export default class FlashHLSAdapter extends FakeEventTarget{
         this._trigger(EventType.ERROR,error);
       },
       manifest:(duration, levels_, loadmetrics)=>{
+        let audioTracks = this._api.getAudioTrackList();
+        const parsedAudioTracks = [];
+        if (audioTracks) {
+          for (let i = 0; i < audioTracks.length; i++) {
+            const settings = {
+              id: audioTracks[i].id,
+              active: audioTracks[i].isDefault,
+              label: audioTracks[i].title,
+              language: audioTracks[i].title,//TODO: Get language?!?
+              index: i
+            };
+            parsedAudioTracks.push(new AudioTrack(settings));
+          }
+        }
 
+        let videoTracks = [];
+        for (let i = 0; i < levels_.length; i++) {
+          // Create video tracks
+          let settings = {
+            active: 0=== i,
+            bandwidth:levels_[i].bitrate,
+            width: levels_[i].width,
+            height:levels_[i].height,
+            language: '',
+            index: i
+          };
+          videoTracks.push(new VideoTrack(settings));
+        }
+        this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
       },
       seekState: (newState) =>{
         if (newState === 'SEEKING') {
@@ -156,7 +185,6 @@ export default class FlashHLSAdapter extends FakeEventTarget{
         //IDLE/PLAYING/PAUSED/PLAYING_BUFFERING/PAUSED_BUFFERING
         switch(newState){
           case "IDLE":
-            this._trigger(EventType.WAITING);
             return;
           case "PLAYING":
             this._trigger(EventType.PLAYING);
@@ -236,7 +264,42 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   }
 
   getDuration(): number {
-    return this._api.getDuration();
+    if (this._api) {
+      return this._api.getDuration();
+    } else {
+      return Number.NaN;
+    }
+  }
+
+  selectAudioTrack(audioTrack: AudioTrack): void {
+    if (this._api){
+      this._api.setAudioTrack(audioTrack.id);
+      this._trigger(EventType.AUDIO_TRACK_CHANGED,{selectedAudioTrack:audioTrack})
+
+    } else {
+      console.error("no API");
+    }
+  }
+
+  selectVideoTrack(videoTrack: VideoTrack): void {
+    if (this._api) {
+      this._api.playerSetAutoLevelCapping(videoTrack.index);
+      this._trigger(EventType.VIDEO_TRACK_CHANGED, {selectedVideoTrack: videoTrack});
+
+      if (videoTrack.index == -1) {
+        this._trigger(EventType.ABR_MODE_CHANGED, {mode:'auto'});
+      } else {
+        this._trigger(EventType.ABR_MODE_CHANGED, {mode:'manual'});
+      }
+    } else {
+      console.error(("no API :-("));
+    }
+  }
+
+  getVideoTrack(): number {
+    if (this._api){
+      return this._api.getAutoLevelCapping();
+    }
   }
 
   _trigger(name: string, payload?: Object): void {

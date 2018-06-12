@@ -104,17 +104,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
         return {[Flash.id]: mergedResults};
       });
   }
-  /**
-   * For browsers which block auto play, use the user gesture to open the video element and enable playing via API.
-   * @returns {void}
-   * @private
-   * @public
-   */
-  static prepareVideoElement(): void {
-    // Flash._el = Utils.Dom.createElement('div');
-    // Flash._el.innerHTML = Flash.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1')
-
-  }
 
 
 
@@ -125,31 +114,62 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   constructor(source: PKMediaSourceObject, config: Object) {
     super();
+    this._init(source,config);
+
+  }
+
+  _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
     this._api = new FlashHLSAdapter(source,config);
     this._el = this._api.attach(this._el);
     this._addBindings();
     this.src = source.url;
   }
-
   reset(): void {
-
+    this._el=null;
+    this._src = null;
+    this._duration = null;
+    this._buffer = null;
+    this._watched = null;
+    this._loadPromise = null;
+    this._volume = null;
+    this._volumeBeforeMute = null;
   }
 
+  /**
+   * Restores the engine.
+   * @param {PKMediaSourceObject} source - The selected source object.
+   * @param {Object} config - The player configuration.
+   * @returns {void}
+   */
+  restore(source: PKMediaSourceObject, config: Object): void {
+    this.destroy();
+    this._init(source, config);
+  }
+
+  /**
+   * Get the engine's id
+   * @public
+   * @returns {string} the engine's id
+   */
+  get id(): string {
+    return Flash.id;
+  }
+
+
   destroy(): void {
+
     if (this._api) {
       this._api.destroy();
+      this._eventManager.destroy();
+      this.reset();
     }
   }
 
   _addBindings(): void{
     if (this._api) {
-      // this._eventManager.listen(this._api, CustomEventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.TEXT_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.ABR_MODE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.TEXT_CUE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.TRACKS_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.ABR_MODE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.TRACKS_CHANGED, (event: FakeEvent) =>{ this.dispatchEvent(event)});
       this._eventManager.listen(this._api, EventType.ERROR, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.TIME_UPDATE, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.PLAYING, (event: FakeEvent) => this.dispatchEvent(event));
@@ -168,6 +188,9 @@ export default class Flash extends FakeEventTarget implements IEngine {
       this._eventManager.listen(this._api, EventType.WAITING, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.SEEKING, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.SEEKED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.ENDED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
     }
   }
 
@@ -177,6 +200,52 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   getVideoElement(): HTMLVideoElement {
     return this._el;
+  }
+
+  /**
+   * Select an audio track
+   * @function selectAudioTrack
+   * @param {AudioTrack} audioTrack - the  audio track to select
+   * @returns {void}
+   * @public
+   */
+  selectAudioTrack(audioTrack: AudioTrack): void {
+    this._api.selectAudioTrack(audioTrack);
+  }
+
+
+  /**
+   * Select a video track
+   * @function selectVideoTrack
+   * @param {VideoTrack} videoTrack - the track to select
+   * @returns {void}
+   * @public
+   */
+  selectVideoTrack(videoTrack: VideoTrack): void {
+    this._api.selectVideoTrack(videoTrack);
+  }
+
+  /**
+   * Enables adaptive bitrate
+   * @function enableAdaptiveBitrate
+   * @returns {void}
+   * @public
+   */
+  enableAdaptiveBitrate(): void {
+    this._api.selectVideoTrack({index:-1});
+  }
+
+  /**
+   * Checking if adaptive bitrate switching is enabled.
+   * For progressive playback will always returns false.
+   * For adaptive playback will always returns true.
+   * @function isAdaptiveBitrateEnabled
+   * @returns {boolean} - Whether adaptive bitrate is enabled.
+   * @public
+   */
+  isAdaptiveBitrateEnabled(): boolean {
+    console.log(this._api.getVideoTrack())
+    return this._api.getVideoTrack() == -1;
   }
 
   /**
@@ -210,8 +279,8 @@ export default class Flash extends FakeEventTarget implements IEngine {
   load(startTime: ?number): Promise<Object> {
     this._api.load(startTime);
     this._loadPromise = new Promise((resolve)=>{
-      this._eventManager.listenOnce(this._api,EventType.TRACKS_CHANGED,()=>{
-        resolve();
+      this._eventManager.listenOnce(this._api,EventType.TRACKS_CHANGED,(tracks)=>{
+        resolve(tracks);
       })
     });
   }
@@ -271,7 +340,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get duration(): number {
-    return this._api.getDuration()
+    return this._duration || this._api.getDuration();
   }
   /**
    * Set playback volume.
@@ -384,6 +453,17 @@ export default class Flash extends FakeEventTarget implements IEngine {
   getStartTimeOfDvrWindow(): number {
     return  0;
   }
+
+  /**
+   * The ended property returns whether the playback of the audio/video has ended.
+   * @returns {boolean} - The ended value.
+   * @public
+   */
+  get ended(): boolean {
+   // return this._ended;
+  }
+
+
 
   /**
    * Seeking to live edge.
