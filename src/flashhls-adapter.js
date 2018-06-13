@@ -1,5 +1,5 @@
 // @flow
-import {EventType,EventManager, FakeEventTarget, Utils, FakeEvent,Error, AudioTrack, VideoTrack} from "playkit-js";
+import {EventType, FakeEventTarget, Utils, FakeEvent,Error, AudioTrack, VideoTrack} from "playkit-js";
 import FlashAPI from "./flash-api";
 
 /**
@@ -12,17 +12,11 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   _api: FlashAPI;
   _src: PKMediaSourceObject;
   _startTime: number;
-  _firstPlay : boolean = true;
+  _firstPlay: boolean = true;
   _initalVolume: number;
   _waitingForLoad: boolean;
   _waitingForPlay: boolean;
   _loadReported: boolean = false;
-  /**
-   * The event manager of the engine.
-   * @type {EventManager}
-   * @private
-   */
-  _eventManager: EventManager;
 
 
   static getFlashCode(swf: string,flashVars: Object, params: Object, attributes: Object):string{
@@ -93,7 +87,11 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   attach(_el: HTMLDivElement): HTMLDivElement {
     this._el = _el;
     this._el = Utils.Dom.createElement('div');
-    this._el.innerHTML = FlashHLSAdapter.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1',{callback:'flashlsCallback'})
+    if (!this._config.flashvars) {
+      this._config.flashvars= {};
+    }
+    this._config.flashvars.callback = 'flashlsCallback';
+    this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1',this._config.flashvars,this._config.params,this._config.attributes)
 
     let flashlsEvents = {
       ready:() => {
@@ -112,7 +110,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
           this._api.playerSetLogDebug2(true);
         }
       },
-      videoSize:(width,heigh)=>{},
+      videoSize:(width, height)=>{},
       levelLoaded:(loadmetrics)=>{
         if (!this._loadReported) {
           this._trigger(EventType.LOADED_DATA, loadmetrics);

@@ -1,10 +1,12 @@
 // @flow
+import DefaultConfig from './default-config';
 import {
   FakeEventTarget,
   EventManager,
   IEngine,
   ICapability,
-  EventType} from 'playkit-js'
+  EventType,
+Utils} from 'playkit-js'
 import FlashIsSupported from 'capabilities/flash-is-supported'
 import FlashHLSAdapter from "./flashhls-adapter";
 
@@ -120,11 +122,14 @@ export default class Flash extends FakeEventTarget implements IEngine {
 
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
-    this._api = new FlashHLSAdapter(source,config);
+    this._flashConfig = Utils.Object.getPropertyPath(config,"playback.options.flash");
+    this._flashConfig = Utils.Object.mergeDeep(DefaultConfig,this._flashConfig);
+    this._api = new FlashHLSAdapter(source,this._flashConfig );
     this._el = this._api.attach(this._el);
     this._addBindings();
     this.src = source.url;
   }
+
   reset(): void {
     this._el=null;
     this._src = null;

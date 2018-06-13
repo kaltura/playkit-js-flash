@@ -125,6 +125,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _defaultConfig = __webpack_require__(6);
+
+var _defaultConfig2 = _interopRequireDefault(_defaultConfig);
+
 var _playkitJs = __webpack_require__(0);
 
 var _flashIsSupported = __webpack_require__(3);
@@ -263,7 +267,9 @@ var Flash = function (_FakeEventTarget) {
     key: '_init',
     value: function _init(source, config) {
       this._eventManager = new _playkitJs.EventManager();
-      this._api = new _flashhlsAdapter2.default(source, config);
+      this._flashConfig = _playkitJs.Utils.Object.getPropertyPath(config, "playback.options.flash");
+      this._flashConfig = _playkitJs.Utils.Object.mergeDeep(_defaultConfig2.default, this._flashConfig);
+      this._api = new _flashhlsAdapter2.default(source, this._flashConfig);
       this._el = this._api.attach(this._el);
       this._addBindings();
       this.src = source.url;
@@ -849,12 +855,6 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
 
   _createClass(FlashHLSAdapter, null, [{
     key: "getFlashCode",
-
-    /**
-     * The event manager of the engine.
-     * @type {EventManager}
-     * @private
-     */
     value: function getFlashCode(swf, flashVars, params, attributes) {
       var objTag = '<object type="application/x-shockwave-flash" ';
       var flashVarsString = '';
@@ -935,7 +935,11 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
 
       this._el = _el;
       this._el = _playkitJs.Utils.Dom.createElement('div');
-      this._el.innerHTML = FlashHLSAdapter.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1', { callback: 'flashlsCallback' });
+      if (!this._config.flashvars) {
+        this._config.flashvars = {};
+      }
+      this._config.flashvars.callback = 'flashlsCallback';
+      this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1', this._config.flashvars, this._config.params, this._config.attributes);
 
       var flashlsEvents = {
         ready: function ready() {
@@ -954,7 +958,7 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
             _this2._api.playerSetLogDebug2(true);
           }
         },
-        videoSize: function videoSize(width, heigh) {},
+        videoSize: function videoSize(width, height) {},
         levelLoaded: function levelLoaded(loadmetrics) {
           if (!_this2._loadReported) {
             _this2._trigger(_playkitJs.EventType.LOADED_DATA, loadmetrics);
@@ -1383,6 +1387,12 @@ var FlashAPI = function () {
 }();
 
 exports.default = FlashAPI;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+module.exports = {}
 
 /***/ })
 /******/ ]);
