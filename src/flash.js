@@ -47,6 +47,12 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   _eventManager: EventManager;
 
+  _ended: boolean = false;
+
+  _seeking: boolean = false;
+
+  _srcToLoad: string;
+
   /**
    * The flash capabilities handlers.
    * @private
@@ -122,12 +128,12 @@ export default class Flash extends FakeEventTarget implements IEngine {
 
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
-    this._flashConfig = Utils.Object.getPropertyPath(config,"playback.options.flash");
-    this._flashConfig = Utils.Object.mergeDeep(DefaultConfig,this._flashConfig);
-    this._api = new FlashHLSAdapter(source,this._flashConfig );
+    this._flashConfig = Utils.Object.getPropertyPath(config, "playback.options.flash");
+    this._flashConfig = Utils.Object.mergeDeep(DefaultConfig, this._flashConfig);
+    this._api = new FlashHLSAdapter(source, this._flashConfig );
     this._el = this._api.attach(this._el);
     this._addBindings();
-    this.src = source.url;
+    this._srcToLoad = source.url;
   }
 
   reset(): void {
@@ -139,6 +145,9 @@ export default class Flash extends FakeEventTarget implements IEngine {
     this._loadPromise = null;
     this._volume = null;
     this._volumeBeforeMute = null;
+    this._ended = false;
+    this._seeking = false;
+    this._srcToLoad = null;
   }
 
   /**
@@ -191,19 +200,28 @@ export default class Flash extends FakeEventTarget implements IEngine {
       this._eventManager.listen(this._api, EventType.PLAY, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.VOLUME_CHANGE, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.WAITING, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.SEEKING, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.SEEKED, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.ENDED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.SEEKING, (event: FakeEvent) => {
+        this.dispatchEvent(event);
+        this._seeking = true;
+      });
+      this._eventManager.listen(this._api, EventType.SEEKED, (event: FakeEvent) =>{
+        this.dispatchEvent(event);
+        this._seeking = false;
+      });
+      this._eventManager.listen(this._api, EventType.ENDED, (event: FakeEvent) =>{
+        this.dispatchEvent(event);
+        this._ended = true;
+      });
       this._eventManager.listen(this._api, EventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
     }
   }
 
   /**
-   * @returns {HTMLVideoElement} - The video element.
+   * @returns {HTMLDivElement} - The flash wrapper element.
    * @public
    */
-  getVideoElement(): HTMLVideoElement {
+  getVideoElement(): HTMLDivElement {
     return this._el;
   }
 
@@ -249,7 +267,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   isAdaptiveBitrateEnabled(): boolean {
-    console.log(this._api.getVideoTrack())
     return this._api.getVideoTrack() == -1;
   }
 
@@ -282,12 +299,15 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {Promise<Object>} - The loaded data
    */
   load(startTime: ?number): Promise<Object> {
+    this._src = this._srcToLoad;
     this._api.load(startTime);
     this._loadPromise = new Promise((resolve)=>{
       this._eventManager.listenOnce(this._api,EventType.TRACKS_CHANGED,(tracks)=>{
         resolve(tracks);
       })
     });
+
+    return this._loadPromise;
   }
 
   /**
@@ -383,7 +403,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get seeking(): boolean {
-    return false;
+    return this._seeking;
   }
 
   /**
@@ -465,10 +485,8 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get ended(): boolean {
-   // return this._ended;
+    return this._ended;
   }
-
-
 
   /**
    * Seeking to live edge.

@@ -169,15 +169,16 @@ export default class FlashHLSAdapter extends FakeEventTarget{
         this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
       },
       seekState: (newState) =>{
+        if (this._firstPlay) {
+          return;
+        }
         if (newState === 'SEEKING') {
             this._trigger(EventType.SEEKING);
             this._trigger(EventType.WAITING);
           }
           if (newState === 'SEEKED') {
             this._trigger(EventType.SEEKED);
-
           }
-
       },
       state:(newState) => {
         //IDLE/PLAYING/PAUSED/PLAYING_BUFFERING/PAUSED_BUFFERING
@@ -188,7 +189,6 @@ export default class FlashHLSAdapter extends FakeEventTarget{
             this._trigger(EventType.PLAYING);
             this._firstPlay = false;
             break;
-
           case "PAUSED_BUFFERING":
             this._trigger(EventType.WAITING);
             break;
@@ -203,21 +203,12 @@ export default class FlashHLSAdapter extends FakeEventTarget{
     // Create a single global callback function and pass it's name
     // to the SWF with the name `callback` in the FlashVars parameter.
     window.flashlsCallback = function(eventName, args) {
-      // console.warn(eventName,args);
       if (flashlsEvents[eventName]) {
         flashlsEvents[eventName].apply(null, args);
       }
     };
     return this._el;
-
-
   }
-  /**
-   * Dispatch an adapter event forward.
-   * @param {string} name - The name of the event.
-   * @param {?Object} payload - The event payload.
-   * @returns {void}
-   */
 
   load(startTime: ?number): void{
     if (startTime) {
@@ -244,11 +235,15 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   }
 
   pause(){
-    this._api.pause();
+    if (this._api) {
+      this._api.pause();
+    }
   }
 
-  seek(to: number): void{
-    this._api.seek(to);
+  seek(to: number): void {
+    if (this._api) {
+      this._api.seek(to);
+    }
   }
 
   volume(vol: number): void {
@@ -274,8 +269,6 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       this._api.setAudioTrack(audioTrack.id);
       this._trigger(EventType.AUDIO_TRACK_CHANGED,{selectedAudioTrack:audioTrack})
 
-    } else {
-      console.error("no API");
     }
   }
 
@@ -289,8 +282,6 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       } else {
         this._trigger(EventType.ABR_MODE_CHANGED, {mode:'manual'});
       }
-    } else {
-      console.error(("no API :-("));
     }
   }
 
