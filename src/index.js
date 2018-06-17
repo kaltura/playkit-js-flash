@@ -1,5 +1,5 @@
 // @flow
-import {Engines} from 'playkit-js'
+import {registerEngine} from 'playkit-js'
 import Flash from './flash'
 
 declare var __VERSION__: string;
@@ -12,6 +12,6 @@ const pluginName: string = "flash";
 Flash.runCapabilities();
 Flash.getCapabilities().then(((capabilites) =>{
   if (capabilites["flash"].isSupported) {
-    Engines.push(Flash);
+    registerEngine(Flash);
   }
 }));

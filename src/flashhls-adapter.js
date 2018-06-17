@@ -91,7 +91,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       this._config.flashvars= {};
     }
     this._config.flashvars.callback = 'flashlsCallback';
-    this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1',this._config.flashvars,this._config.params,this._config.attributes)
+    this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'https://cdnapisec.kaltura.com/html5/static/flashhls/v0.4.4.24/flashlsChromeless.swf?inline=1',this._config.flashvars,this._config.params,this._config.attributes)
 
     let flashlsEvents = {
       ready:() => {
