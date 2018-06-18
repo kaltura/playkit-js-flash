@@ -8,7 +8,6 @@ declare var __NAME__: string;
 export default Flash;
 export {__VERSION__ as VERSION, __NAME__ as NAME};
 
-const pluginName: string = "flash";
 Flash.runCapabilities();
 Flash.getCapabilities().then(((capabilites) =>{
   if (capabilites["flash"].isSupported) {

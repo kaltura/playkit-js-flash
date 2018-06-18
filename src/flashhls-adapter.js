@@ -19,7 +19,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   _loadReported: boolean = false;
 
 
-  static getFlashCode(swf: string,flashVars: Object, params: Object, attributes: Object):string{
+  static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
     const objTag = '<object type="application/x-shockwave-flash" ';
     let flashVarsString = '';
     let paramsString = '';
@@ -110,7 +110,6 @@ export default class FlashHLSAdapter extends FakeEventTarget{
           this._api.playerSetLogDebug2(true);
         }
       },
-      videoSize:(width, height)=>{},
       levelLoaded:(loadmetrics)=>{
         if (!this._loadReported) {
           this._trigger(EventType.LOADED_DATA, loadmetrics);
@@ -137,7 +136,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
           });
         this._trigger(EventType.ERROR,error);
       },
-      manifest:(duration, levels_, loadmetrics)=>{
+      manifest:(duration, levels_)=>{
         let audioTracks = this._api.getAudioTrackList();
         const parsedAudioTracks = [];
         if (audioTracks) {
@@ -294,7 +293,4 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   _trigger(name: string, payload?: Object): void {
     this.dispatchEvent(new FakeEvent(name, payload));
   }
-
-
-
 }

@@ -18,8 +18,24 @@ export default class Flash extends FakeEventTarget implements IEngine {
 
 
   /**
+   * The supported mime types by FLASH HLS Engine.
+   * @member {Array<string>} _hlsMimeType
+   * @static
+   * @private
+   */
+  static _hlsMimeTypes: Array<string> = [
+    'application/x-mpegurl',
+    'application/vnd.apple.mpegurl',
+    'audio/mpegurl',
+    'audio/x-mpegurl',
+    'video/x-mpegurl',
+    'video/mpegurl',
+    'application/mpegurl'
+  ];
+
+  /**
    * The video element.
-   * @type {HTMLVideoElement}
+   * @type {HTMLDivElement}
    * @private
    */
   _el: HTMLDivElement;
@@ -83,7 +99,11 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @static
    */
   static canPlaySource(source: PKMediaSourceObject, preferNative: boolean): boolean {
-    return true;
+    if (source && source.mimetype) {
+      let canHlsPlayType = (typeof source.mimetype === 'string') ? Flash._hlsMimeTypes.includes(source.mimetype.toLowerCase()) : false;
+      return canHlsPlayType;
+    }
+    return false;
   }
 
   /**
@@ -170,9 +190,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
     return Flash.id;
   }
 
-
   destroy(): void {
-
     if (this._api) {
       this._api.destroy();
       this._eventManager.destroy();
@@ -476,7 +494,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   getStartTimeOfDvrWindow(): number {
-    return  0;
+    return 0;
   }
 
   /**
