@@ -4,167 +4,167 @@ export default class FlashAPI  {
 
   flashObject: any;
 
-  constructor(flashObject) {
+  constructor(flashObject: any): void {
     this.flashObject = flashObject;
   }
 
-  load(url) {
+  load(url: string): void {
     this.flashObject.playerLoad(url);
   }
 
-  play(offset) {
+  play(offset: number): void {
     this.flashObject.playerPlay(offset);
   }
 
-  pause() {
+  pause(): void {
     this.flashObject.playerPause();
   }
 
-  resume() {
+  resume(): void {
     this.flashObject.playerResume();
   }
 
-  seek(offset) {
+  seek(offset: number): void {
     this.flashObject.playerSeek(offset);
   }
 
-  stop() {
+  stop(): void {
     this.flashObject.playerStop();
   }
 
-  volume(volume) {
+  volume(volume: number): void {
     this.flashObject.playerVolume(volume);
   }
 
-  setCurrentLevel(level) {
+  setCurrentLevel(level: number): void {
     this.flashObject.playerSetCurrentLevel(level);
   }
 
-  setNextLevel(level) {
+  setNextLevel(level: number): void {
     this.flashObject.playerSetNextLevel(level);
   }
 
-  setLoadLevel(level) {
+  setLoadLevel(level: number): void {
     this.flashObject.playerSetLoadLevel(level);
   }
 
-  setMaxBufferLength(len) {
+  setMaxBufferLength(len: number): void {
     this.flashObject.playerSetmaxBufferLength(len);
   }
 
-  getPosition() {
+  getPosition(): number {
     return this.flashObject.getPosition();
   }
 
-  getDuration() {
+  getDuration(): number {
     return this.flashObject.getDuration();
   }
 
-  getbufferLength() {
+  getbufferLength(): number {
     return this.flashObject.getbufferLength();
   }
 
-  getbackBufferLength() {
+  getbackBufferLength(): number {
     return this.flashObject.getbackBufferLength();
   }
 
-  getLowBufferLength() {
+  getLowBufferLength(): number {
     return this.flashObject.getlowBufferLength();
   }
 
-  getMinBufferLength() {
+  getMinBufferLength(): number {
     return this.flashObject.getminBufferLength();
   }
 
-  getMaxBufferLength() {
+  getMaxBufferLength(): number {
     return this.flashObject.getmaxBufferLength();
   }
 
-  getLevels() {
+  getLevels(): any {
     return this.flashObject.getLevels();
   }
 
-  getAutoLevel() {
+  getAutoLevel(): any {
     return this.flashObject.getAutoLevel();
   }
 
-  getCurrentLevel() {
+  getCurrentLevel(): number {
     return this.flashObject.getCurrentLevel();
   }
 
-  getNextLevel() {
+  getNextLevel(): number {
     return this.flashObject.getNextLevel();
   }
 
-  getLoadLevel() {
+  getLoadLevel(): number {
     return this.flashObject.getLoadLevel();
   }
 
-  getAudioTrackList() {
+  getAudioTrackList(): Array<Object> {
     return this.flashObject.getAudioTrackList();
   }
 
-  getStats() {
+  getStats(): any {
     return this.flashObject.getStats();
   }
 
-  setAudioTrack(trackId) {
+  setAudioTrack(trackId: number): void {
     this.flashObject.playerSetAudioTrack(trackId);
   }
 
-  playerSetLogDebug(state) {
+  playerSetLogDebug(state: boolean): void {
     this.flashObject.playerSetLogDebug(state);
   }
 
-  getLogDebug() {
+  getLogDebug(): any {
     return this.flashObject.getLogDebug();
   }
 
-  playerSetLogDebug2(state) {
+  playerSetLogDebug2(state: boolean): void {
     this.flashObject.playerSetLogDebug2(state);
   }
 
-  getLogDebug2() {
+  getLogDebug2(): any {
     return this.flashObject.getLogDebug2();
   }
 
-  playerSetUseHardwareVideoDecoder(state) {
+  playerSetUseHardwareVideoDecoder(state: boolean): void {
     this.flashObject.playerSetUseHardwareVideoDecoder(state);
   }
 
-  getUseHardwareVideoDecoder() {
+  getUseHardwareVideoDecoder(): boolean {
     return this.flashObject.getUseHardwareVideoDecoder();
   }
 
-  playerSetflushLiveURLCache(state) {
+  playerSetflushLiveURLCache(state: boolean): void {
     this.flashObject.playerSetflushLiveURLCache(state);
   }
 
-  getflushLiveURLCache() {
+  getflushLiveURLCache(): any {
     return this.flashObject.getflushLiveURLCache();
   }
 
-  playerSetJSURLStream(state) {
+  playerSetJSURLStream(state: boolean): void {
     this.flashObject.playerSetJSURLStream(state);
   }
 
-  getJSURLStream() {
+  getJSURLStream(): any {
     return this.flashObject.getJSURLStream();
   }
 
-  playerCapLeveltoStage(state) {
+  playerCapLeveltoStage(state: boolean): void {
     this.flashObject.playerCapLeveltoStage(state);
   }
 
-  getCapLeveltoStage() {
+  getCapLeveltoStage(): any {
     return this.flashObject.getCapLeveltoStage();
   }
 
-  playerSetAutoLevelCapping(level) {
+  playerSetAutoLevelCapping(level: number): void {
     this.flashObject.playerSetAutoLevelCapping(level);
   }
 
-  getAutoLevelCapping() {
+  getAutoLevelCapping(): number {
     return this.flashObject.getAutoLevelCapping();
   }
 

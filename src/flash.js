@@ -1,12 +1,15 @@
 // @flow
+import DefaultConfig from './default-config';
 import {
   FakeEventTarget,
   EventManager,
+  FakeEvent,
   IEngine,
   ICapability,
-  EventType} from 'playkit-js'
-import FlashIsSupported from 'capabilities/flash-is-supported'
-import FlashHLSAdapter from "./flashhls-adapter";
+  EventType,
+Utils} from 'playkit-js';
+import FlashIsSupported from './capabilities/flash-is-supported';
+import FlashHLSAdapter from './flashhls-adapter';
 
 /**
  * Your class description.
@@ -14,29 +17,46 @@ import FlashHLSAdapter from "./flashhls-adapter";
  */
 export default class Flash extends FakeEventTarget implements IEngine {
 
+  /**
+   * The supported mime types by FLASH HLS Engine.
+   * @member {Array<string>} _hlsMimeType
+   * @static
+   * @private
+   */
+  static _hlsMimeTypes: Array<string> = [
+    'application/x-mpegurl',
+    'application/vnd.apple.mpegurl',
+    'audio/mpegurl',
+    'audio/x-mpegurl',
+    'video/x-mpegurl',
+    'video/mpegurl',
+    'application/mpegurl'
+  ];
 
   /**
    * The video element.
-   * @type {HTMLVideoElement}
+   * @type {HTMLDivElement}
    * @private
    */
-  _el: HTMLDivElement;
+  _el: ?HTMLDivElement;
 
-  _api: FlashHLSAdapter;
+  _api: ?FlashHLSAdapter;
 
-  _src: string;
+  _src: ?string;
 
-  _duration: number;
+  _duration: ?number;
 
-  _buffer: number;
+  _buffer: ?number;
 
-  _watched: number;
+  _watched: ?number;
 
   _loadPromise: ?Promise<*>;
 
-  _volume: number;
+  _volume: ?number;
 
-  _volumeBeforeMute: number;
+  _volumeBeforeMute: ?number;
+
+  _paused: boolean = true;
 
   /**
    * The event manager of the engine.
@@ -44,6 +64,12 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @private
    */
   _eventManager: EventManager;
+
+  _ended: boolean = false;
+
+  _seeking: boolean = false;
+
+  _srcToLoad: ?string;
 
   /**
    * The flash capabilities handlers.
@@ -75,7 +101,11 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @static
    */
   static canPlaySource(source: PKMediaSourceObject, preferNative: boolean): boolean {
-    return true;
+    if (source && source.mimetype) {
+      let canHlsPlayType = (typeof source.mimetype === 'string') ? Flash._hlsMimeTypes.includes(source.mimetype.toLowerCase()) : false;
+      return canHlsPlayType;
+    }
+    return false;
   }
 
   /**
@@ -104,17 +134,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
         return {[Flash.id]: mergedResults};
       });
   }
-  /**
-   * For browsers which block auto play, use the user gesture to open the video element and enable playing via API.
-   * @returns {void}
-   * @private
-   * @public
-   */
-  static prepareVideoElement(): void {
-    // Flash._el = Utils.Dom.createElement('div');
-    // Flash._el.innerHTML = Flash.getFlashCode('http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1')
-
-  }
 
 
 
@@ -125,44 +144,166 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   constructor(source: PKMediaSourceObject, config: Object) {
     super();
+    this._init(source,config);
+
+  }
+
+  _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
-    this._api = new FlashHLSAdapter(source,config);
-    this._el = this._api.attach(this._el);
+    this._flashConfig = Utils.Object.getPropertyPath(config, "playback.options.flash");
+    this._flashConfig = Utils.Object.mergeDeep(DefaultConfig, this._flashConfig);
+    this._api = new FlashHLSAdapter(source, this._flashConfig);
+    this._el = this._api.attach();
     this._addBindings();
-    this.src = source.url;
+    this._srcToLoad = source.url;
+  }
+
+  reset(): void {
+    this._el = null;
+    this._src = null;
+    this._duration = null;
+    this._buffer = null;
+    this._watched = null;
+    this._loadPromise = null;
+    this._volume = null;
+    this._volumeBeforeMute = null;
+    this._ended = false;
+    this._seeking = false;
+    this._srcToLoad = null;
+    this._paused = true;
+  }
+
+  /**
+   * Restores the engine.
+   * @param {PKMediaSourceObject} source - The selected source object.
+   * @param {Object} config - The player configuration.
+   * @returns {void}
+   */
+  restore(source: PKMediaSourceObject, config: Object): void {
+    this.destroy();
+    this._init(source, config);
+  }
+
+  /**
+   * Get the engine's id
+   * @public
+   * @returns {string} the engine's id
+   */
+  get id(): string {
+    return Flash.id;
+  }
+
+  destroy(): void {
+    if (this._api) {
+      this._api.destroy();
+      this._eventManager.destroy();
+      this.reset();
+    }
   }
 
   _addBindings(): void{
     if (this._api) {
-      // this._eventManager.listen(this._api, CustomEventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.TEXT_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.ABR_MODE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      // this._eventManager.listen(this._api, CustomEventType.TEXT_CUE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.TRACKS_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.ABR_MODE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.TRACKS_CHANGED, (event: FakeEvent) =>{ this.dispatchEvent(event)});
       this._eventManager.listen(this._api, EventType.ERROR, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.TIME_UPDATE, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.PLAYING, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.TIME_UPDATE, (event: FakeEvent) => {
-        this.dispatchEvent(event);
+        if (this._currentTime != event.payload.position) {
+          this.dispatchEvent(event);
+        }
         this._currentTime = event.payload.position;
         this._duration = event.payload.duration;
         this._buffer = event.payload.buffer;
         this._watched = event.payload.watched;
+        this._paused = false;
       });
-      this._eventManager.listen(this._api, EventType.PAUSE, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.PAUSE, (event: FakeEvent) => {
+        this.dispatchEvent(event);
+        this._paused = true;
+      });
       this._eventManager.listen(this._api, EventType.LOADED_METADATA, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.LOADED_DATA, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.PLAY, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.VOLUME_CHANGE, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.WAITING, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.SEEKING, (event: FakeEvent) => {
+        this.dispatchEvent(event);
+        this._seeking = true;
+      });
+      this._eventManager.listen(this._api, EventType.SEEKED, (event: FakeEvent) =>{
+        this.dispatchEvent(event);
+        this._seeking = false;
+      });
+      this._eventManager.listen(this._api, EventType.ENDED, (event: FakeEvent) =>{
+        this.dispatchEvent(event);
+        this._ended = true;
+      });
+      this._eventManager.listen(this._api, EventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      this._eventManager.listen(this._api, EventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
     }
   }
 
   /**
-   * @returns {HTMLVideoElement} - The video element.
+   * @returns {HTMLDivElement} - The flash wrapper element.
    * @public
    */
-  getVideoElement(): HTMLVideoElement {
+  getVideoElement(): ?HTMLDivElement {
     return this._el;
+  }
+
+  /**
+   * Select an audio track
+   * @function selectAudioTrack
+   * @param {AudioTrack} audioTrack - the  audio track to select
+   * @returns {void}
+   * @public
+   */
+  selectAudioTrack(audioTrack: AudioTrack): void {
+    if (this._api) {
+      this._api.selectAudioTrack(audioTrack);
+    }
+  }
+
+
+  /**
+   * Select a video track
+   * @function selectVideoTrack
+   * @param {VideoTrack} videoTrack - the track to select
+   * @returns {void}
+   * @public
+   */
+  selectVideoTrack(videoTrack: VideoTrack): void {
+    if (this._api) {
+      this._api.selectVideoTrack(videoTrack);
+    }
+  }
+
+  /**
+   * Enables adaptive bitrate
+   * @function enableAdaptiveBitrate
+   * @returns {void}
+   * @public
+   */
+  enableAdaptiveBitrate(): void {
+    if (this._api) {
+      this._api.selectVideoTrack({index: -1});
+    }
+  }
+
+  /**
+   * Checking if adaptive bitrate switching is enabled.
+   * For progressive playback will always returns false.
+   * For adaptive playback will always returns true.
+   * @function isAdaptiveBitrateEnabled
+   * @returns {boolean} - Whether adaptive bitrate is enabled.
+   * @public
+   */
+  isAdaptiveBitrateEnabled(): boolean {
+    let isAdaptive: boolean = false;
+    if (this._api){
+      isAdaptive = this._api.getVideoTrack() == -1;
+    }
+    return isAdaptive;
   }
 
   /**
@@ -194,12 +335,18 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {Promise<Object>} - The loaded data
    */
   load(startTime: ?number): Promise<Object> {
+    if (!this._api) {
+      return Promise.reject("Flash is not ready");
+    }
+    this._src = this._srcToLoad;
     this._api.load(startTime);
     this._loadPromise = new Promise((resolve)=>{
-      this._eventManager.listenOnce(this._api,EventType.TRACKS_CHANGED,()=>{
-        resolve();
+      this._eventManager.listenOnce(this._api,EventType.TRACKS_CHANGED,(tracks)=>{
+        resolve(tracks);
       })
     });
+
+    return this._loadPromise;
   }
 
   /**
@@ -208,17 +355,21 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   play(): void {
-    if (!this._loadPromise){
+    if (!this._loadPromise) {
       this.load();
+    } else {
+      this._loadPromise.then(() => {
+        if (this._api) {
+          this._api.play();
+        }
+      });
     }
-    this._loadPromise.then(()=>{
-      this._api.play();
-    });
-    window.api=this._api;
   }
 
   pause(): void{
-    this._api.pause();
+    if (this._api) {
+      this._api.pause();
+    }
   }
 
   /**
@@ -248,7 +399,9 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   set currentTime(to: number): void {
-    this._api.seek(to);
+    if (this._api) {
+      this._api.seek(to);
+    }
   }
 
   /**
@@ -257,7 +410,13 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get duration(): number {
-    return this._api.getDuration()
+    let duration: number = 0;
+    if (this._duration) {
+      duration = this._duration;
+    } else if (this._api) {
+      duration = this._api.getDuration();
+    }
+    return duration;
   }
   /**
    * Set playback volume.
@@ -267,7 +426,10 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   set volume(vol: number): void {
     this._volume = vol;
-    this._api.volume(vol);
+    if (this._api) {
+      this._api.volume(vol);
+    }
+
   }
 
   /**
@@ -276,7 +438,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get volume(): number {
-    return this._volume;
+    return this._volume || 0;
   }
 
   /**
@@ -285,7 +447,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get paused(): boolean {
-    return false;
+    return this._paused;
   }
 
   /**
@@ -294,7 +456,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get seeking(): boolean {
-    return false;
+    return this._seeking;
   }
 
   /**
@@ -302,8 +464,8 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {TimeRanges} - First seekable range (part) of the video in seconds.
    * @public
    */
-  get seekable(): TimeRanges {
-    return 0
+  get seekable(): any {
+   return this.buffered;
   }
 
   /**
@@ -311,8 +473,14 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {TimeRanges} - First played range (part) of the video in seconds.
    * @public
    */
-  get played(): TimeRanges {
-    return this._watched;
+  get played(): any {
+    return {
+      length: 1, start: () => {
+        return 0;
+      }, end: () => {
+        return this._watched;
+      }
+    };
   }
 
   /**
@@ -320,9 +488,23 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {TimeRanges} - First buffered range (part) of the video in seconds.
    * @public
    */
-  get buffered(): TimeRanges {
-    return {length:1,start:()=>{return 0;},end:()=> {return this._buffer;}};
+  get buffered(): any {
+    let bufferLength: number = 0;
+    let backBufferLength: number = 0;
+    if (this._api) {
+      let api = this._api;
+      backBufferLength = api.getBackBufferLength();
+      bufferLength = api.getBufferLength();
+    }
+    return {
+      length: 1, start: () => {
+        return this._currentTime - backBufferLength;
+      }, end: () => {
+        return this.currentTime + bufferLength
+      }
+    };
   }
+
 
   /**
    * Set player muted state.
@@ -359,5 +541,33 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   get defaultMuted(): boolean {
     return false;
+  }
+
+  /**
+   * Get the start time of DVR window in live playback in seconds.
+   * @returns {Number} - start time of DVR window.
+   * @public
+   */
+  getStartTimeOfDvrWindow(): number {
+    return 0;
+  }
+
+  /**
+   * The ended property returns whether the playback of the audio/video has ended.
+   * @returns {boolean} - The ended value.
+   * @public
+   */
+  get ended(): boolean {
+    return this._ended;
+  }
+
+  /**
+   * Seeking to live edge.
+   * @function seekToLiveEdge
+   * @returns {void}
+   * @public
+   */
+  seekToLiveEdge(): void {
+    this.currentTime = this.duration;
   }
 }
