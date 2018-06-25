@@ -77,15 +77,14 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   }
 
   destroy(): void {
-    if (this._el){
+    if (this._el && this._el.parentNode){
       this._el.parentNode.removeChild(this._el);
       this._el.innerHTML = '';
 
     }
   }
 
-  attach(_el: HTMLDivElement): HTMLDivElement {
-    this._el = _el;
+  attach(): HTMLDivElement {
     this._el = Utils.Dom.createElement('div');
     if (!this._config.flashvars) {
       this._config.flashvars= {};
@@ -284,10 +283,24 @@ export default class FlashHLSAdapter extends FakeEventTarget{
     }
   }
 
-  getVideoTrack(): number {
+  getVideoTrack(): ?number {
     if (this._api){
       return this._api.getAutoLevelCapping();
     }
+  }
+
+  getBufferLength(): number {
+    if (this._api) {
+      return this._api.getbufferLength();
+    }
+    return 0;
+  }
+
+  getBackBufferLength(): number {
+    if (this._api) {
+      return this._api.getbackBufferLength();
+    }
+    return 0;
   }
 
   _trigger(name: string, payload?: Object): void {

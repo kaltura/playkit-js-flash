@@ -104,11 +104,10 @@ exports.VERSION = "1.0.1";
 exports.NAME = "playkit-js-flash";
 
 
-var pluginName = "flash";
 _flash2.default.runCapabilities();
 _flash2.default.getCapabilities().then(function (capabilites) {
   if (capabilites["flash"].isSupported) {
-    _playkitJs.Engines.push(_flash2.default);
+    (0, _playkitJs.registerEngine)(_flash2.default);
   }
 });
 
@@ -125,17 +124,17 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _defaultConfig = __webpack_require__(6);
+var _defaultConfig = __webpack_require__(3);
 
 var _defaultConfig2 = _interopRequireDefault(_defaultConfig);
 
 var _playkitJs = __webpack_require__(0);
 
-var _flashIsSupported = __webpack_require__(3);
+var _flashIsSupported = __webpack_require__(4);
 
 var _flashIsSupported2 = _interopRequireDefault(_flashIsSupported);
 
-var _flashhlsAdapter = __webpack_require__(4);
+var _flashhlsAdapter = __webpack_require__(5);
 
 var _flashhlsAdapter2 = _interopRequireDefault(_flashhlsAdapter);
 
@@ -177,8 +176,16 @@ var Flash = function (_FakeEventTarget) {
 
 
     /**
-     * The video element.
-     * @type {HTMLVideoElement}
+     * The event manager of the engine.
+     * @type {EventManager}
+     * @private
+     */
+
+
+    /**
+     * The supported mime types by FLASH HLS Engine.
+     * @member {Array<string>} _hlsMimeType
+     * @static
      * @private
      */
     value: function createEngine(source, config) {
@@ -196,15 +203,19 @@ var Flash = function (_FakeEventTarget) {
 
 
     /**
-     * The event manager of the engine.
-     * @type {EventManager}
+     * The video element.
+     * @type {HTMLDivElement}
      * @private
      */
 
   }, {
     key: 'canPlaySource',
     value: function canPlaySource(source, preferNative) {
-      return true;
+      if (source && source.mimetype) {
+        var canHlsPlayType = typeof source.mimetype === 'string' ? Flash._hlsMimeTypes.includes(source.mimetype.toLowerCase()) : false;
+        return canHlsPlayType;
+      }
+      return false;
     }
 
     /**
@@ -258,6 +269,10 @@ var Flash = function (_FakeEventTarget) {
 
     var _this = _possibleConstructorReturn(this, (Flash.__proto__ || Object.getPrototypeOf(Flash)).call(this));
 
+    _this._paused = true;
+    _this._ended = false;
+    _this._seeking = false;
+
     _this._init(source, config);
 
     return _this;
@@ -270,9 +285,9 @@ var Flash = function (_FakeEventTarget) {
       this._flashConfig = _playkitJs.Utils.Object.getPropertyPath(config, "playback.options.flash");
       this._flashConfig = _playkitJs.Utils.Object.mergeDeep(_defaultConfig2.default, this._flashConfig);
       this._api = new _flashhlsAdapter2.default(source, this._flashConfig);
-      this._el = this._api.attach(this._el);
+      this._el = this._api.attach();
       this._addBindings();
-      this.src = source.url;
+      this._srcToLoad = source.url;
     }
   }, {
     key: 'reset',
@@ -285,6 +300,10 @@ var Flash = function (_FakeEventTarget) {
       this._loadPromise = null;
       this._volume = null;
       this._volumeBeforeMute = null;
+      this._ended = false;
+      this._seeking = false;
+      this._srcToLoad = null;
+      this._paused = true;
     }
 
     /**
@@ -310,7 +329,6 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'destroy',
     value: function destroy() {
-
       if (this._api) {
         this._api.destroy();
         this._eventManager.destroy();
@@ -332,21 +350,22 @@ var Flash = function (_FakeEventTarget) {
         this._eventManager.listen(this._api, _playkitJs.EventType.ERROR, function (event) {
           return _this2.dispatchEvent(event);
         });
-        this._eventManager.listen(this._api, _playkitJs.EventType.TIME_UPDATE, function (event) {
-          return _this2.dispatchEvent(event);
-        });
         this._eventManager.listen(this._api, _playkitJs.EventType.PLAYING, function (event) {
           return _this2.dispatchEvent(event);
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.TIME_UPDATE, function (event) {
-          _this2.dispatchEvent(event);
+          if (_this2._currentTime != event.payload.position) {
+            _this2.dispatchEvent(event);
+          }
           _this2._currentTime = event.payload.position;
           _this2._duration = event.payload.duration;
           _this2._buffer = event.payload.buffer;
           _this2._watched = event.payload.watched;
+          _this2._paused = false;
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.PAUSE, function (event) {
-          return _this2.dispatchEvent(event);
+          _this2.dispatchEvent(event);
+          _this2._paused = true;
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.LOADED_METADATA, function (event) {
           return _this2.dispatchEvent(event);
@@ -364,13 +383,16 @@ var Flash = function (_FakeEventTarget) {
           return _this2.dispatchEvent(event);
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.SEEKING, function (event) {
-          return _this2.dispatchEvent(event);
+          _this2.dispatchEvent(event);
+          _this2._seeking = true;
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.SEEKED, function (event) {
-          return _this2.dispatchEvent(event);
+          _this2.dispatchEvent(event);
+          _this2._seeking = false;
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.ENDED, function (event) {
-          return _this2.dispatchEvent(event);
+          _this2.dispatchEvent(event);
+          _this2._ended = true;
         });
         this._eventManager.listen(this._api, _playkitJs.EventType.VIDEO_TRACK_CHANGED, function (event) {
           return _this2.dispatchEvent(event);
@@ -382,7 +404,7 @@ var Flash = function (_FakeEventTarget) {
     }
 
     /**
-     * @returns {HTMLVideoElement} - The video element.
+     * @returns {HTMLDivElement} - The flash wrapper element.
      * @public
      */
 
@@ -403,7 +425,9 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'selectAudioTrack',
     value: function selectAudioTrack(audioTrack) {
-      this._api.selectAudioTrack(audioTrack);
+      if (this._api) {
+        this._api.selectAudioTrack(audioTrack);
+      }
     }
 
     /**
@@ -417,7 +441,9 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'selectVideoTrack',
     value: function selectVideoTrack(videoTrack) {
-      this._api.selectVideoTrack(videoTrack);
+      if (this._api) {
+        this._api.selectVideoTrack(videoTrack);
+      }
     }
 
     /**
@@ -430,7 +456,9 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'enableAdaptiveBitrate',
     value: function enableAdaptiveBitrate() {
-      this._api.selectVideoTrack({ index: -1 });
+      if (this._api) {
+        this._api.selectVideoTrack({ index: -1 });
+      }
     }
 
     /**
@@ -445,8 +473,11 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'isAdaptiveBitrateEnabled',
     value: function isAdaptiveBitrateEnabled() {
-      console.log(this._api.getVideoTrack());
-      return this._api.getVideoTrack() == -1;
+      var isAdaptive = false;
+      if (this._api) {
+        isAdaptive = this._api.getVideoTrack() == -1;
+      }
+      return isAdaptive;
     }
 
     /**
@@ -469,12 +500,18 @@ var Flash = function (_FakeEventTarget) {
     value: function load(startTime) {
       var _this3 = this;
 
+      if (!this._api) {
+        return Promise.reject("Flash is not ready");
+      }
+      this._src = this._srcToLoad;
       this._api.load(startTime);
       this._loadPromise = new Promise(function (resolve) {
         _this3._eventManager.listenOnce(_this3._api, _playkitJs.EventType.TRACKS_CHANGED, function (tracks) {
           resolve(tracks);
         });
       });
+
+      return this._loadPromise;
     }
 
     /**
@@ -490,16 +527,20 @@ var Flash = function (_FakeEventTarget) {
 
       if (!this._loadPromise) {
         this.load();
+      } else {
+        this._loadPromise.then(function () {
+          if (_this4._api) {
+            _this4._api.play();
+          }
+        });
       }
-      this._loadPromise.then(function () {
-        _this4._api.play();
-      });
-      window.api = this._api;
     }
   }, {
     key: 'pause',
     value: function pause() {
-      this._api.pause();
+      if (this._api) {
+        this._api.pause();
+      }
     }
 
     /**
@@ -590,7 +631,9 @@ var Flash = function (_FakeEventTarget) {
      */
     ,
     set: function set(to) {
-      this._api.seek(to);
+      if (this._api) {
+        this._api.seek(to);
+      }
     }
 
     /**
@@ -602,7 +645,13 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'duration',
     get: function get() {
-      return this._duration || this._api.getDuration();
+      var duration = 0;
+      if (this._duration) {
+        duration = this._duration;
+      } else if (this._api) {
+        duration = this._api.getDuration();
+      }
+      return duration;
     }
     /**
      * Set playback volume.
@@ -615,7 +664,9 @@ var Flash = function (_FakeEventTarget) {
     key: 'volume',
     set: function set(vol) {
       this._volume = vol;
-      this._api.volume(vol);
+      if (this._api) {
+        this._api.volume(vol);
+      }
     }
 
     /**
@@ -625,7 +676,7 @@ var Flash = function (_FakeEventTarget) {
      */
     ,
     get: function get() {
-      return this._volume;
+      return this._volume || 0;
     }
 
     /**
@@ -637,7 +688,7 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'paused',
     get: function get() {
-      return false;
+      return this._paused;
     }
 
     /**
@@ -649,7 +700,7 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'seeking',
     get: function get() {
-      return false;
+      return this._seeking;
     }
 
     /**
@@ -661,7 +712,7 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'seekable',
     get: function get() {
-      return 0;
+      return this.buffered;
     }
 
     /**
@@ -673,7 +724,15 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'played',
     get: function get() {
-      return this._watched;
+      var _this5 = this;
+
+      return {
+        length: 1, start: function start() {
+          return 0;
+        }, end: function end() {
+          return _this5._watched;
+        }
+      };
     }
 
     /**
@@ -685,13 +744,22 @@ var Flash = function (_FakeEventTarget) {
   }, {
     key: 'buffered',
     get: function get() {
-      var _this5 = this;
+      var _this6 = this;
 
-      return { length: 1, start: function start() {
-          return 0;
+      var bufferLength = 0;
+      var backBufferLength = 0;
+      if (this._api) {
+        var api = this._api;
+        backBufferLength = api.getBackBufferLength();
+        bufferLength = api.getBufferLength();
+      }
+      return {
+        length: 1, start: function start() {
+          return _this6._currentTime - backBufferLength;
         }, end: function end() {
-          return _this5._buffer;
-        } };
+          return _this6.currentTime + bufferLength;
+        }
+      };
     }
 
     /**
@@ -739,20 +807,27 @@ var Flash = function (_FakeEventTarget) {
     }
   }, {
     key: 'ended',
-    get: function get() {}
-    // return this._ended;
-
+    get: function get() {
+      return this._ended;
+    }
   }]);
 
   return Flash;
 }(_playkitJs.FakeEventTarget);
 
+Flash._hlsMimeTypes = ['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'audio/mpegurl', 'audio/x-mpegurl', 'video/x-mpegurl', 'video/mpegurl', 'application/mpegurl'];
 Flash._capabilities = [_flashIsSupported2.default];
 Flash.id = "flash";
 exports.default = Flash;
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports) {
+
+module.exports = {}
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -790,14 +865,15 @@ var FlashIsSupported = function () {
         version = new window.ActiveXObject('ShockwaveFlash.ShockwaveFlash').GetVariable('$version').replace(/\D+/g, ',').match(/^,?(.+),?$/)[1];
       } catch (e) {
         try {
-          if (navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
-            version = (navigator.plugins['Shockwave Flash 2.0'] || navigator.plugins['Shockwave Flash']).description.replace(/\D+/g, ',').match(/^,?(.+),?$/)[1];
+          if (window.navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
+            version = (window.navigator.plugins['Shockwave Flash 2.0'] || window.navigator.plugins['Shockwave Flash']).description.replace(/\D+/g, ',').match(/^,?(.+),?$/)[1];
           }
         } catch (err) {
           // ignore
         }
       }
-      FlashIsSupported._result = version.split(',')[0] >= 10;
+      var majorVersion = parseInt(version.split(',')[0]);
+      FlashIsSupported._result = majorVersion >= 10;
     }
 
     /**
@@ -820,7 +896,7 @@ var FlashIsSupported = function () {
 exports.default = FlashIsSupported;
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -834,7 +910,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _playkitJs = __webpack_require__(0);
 
-var _flashApi = __webpack_require__(5);
+var _flashApi = __webpack_require__(6);
 
 var _flashApi2 = _interopRequireDefault(_flashApi);
 
@@ -923,23 +999,22 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
   _createClass(FlashHLSAdapter, [{
     key: "destroy",
     value: function destroy() {
-      if (this._el) {
+      if (this._el && this._el.parentNode) {
         this._el.parentNode.removeChild(this._el);
         this._el.innerHTML = '';
       }
     }
   }, {
     key: "attach",
-    value: function attach(_el) {
+    value: function attach() {
       var _this2 = this;
 
-      this._el = _el;
       this._el = _playkitJs.Utils.Dom.createElement('div');
       if (!this._config.flashvars) {
         this._config.flashvars = {};
       }
       this._config.flashvars.callback = 'flashlsCallback';
-      this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'http://flashls.org/flashls-0.4.4.24/bin/debug/flashlsChromeless.swf?inline=1', this._config.flashvars, this._config.params, this._config.attributes);
+      this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'https://cdnapisec.kaltura.com/html5/static/flashhls/v0.4.4.24/flashlsChromeless.swf?inline=1', this._config.flashvars, this._config.params, this._config.attributes);
 
       var flashlsEvents = {
         ready: function ready() {
@@ -958,7 +1033,6 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
             _this2._api.playerSetLogDebug2(true);
           }
         },
-        videoSize: function videoSize(width, height) {},
         levelLoaded: function levelLoaded(loadmetrics) {
           if (!_this2._loadReported) {
             _this2._trigger(_playkitJs.EventType.LOADED_DATA, loadmetrics);
@@ -981,7 +1055,7 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
           });
           _this2._trigger(_playkitJs.EventType.ERROR, error);
         },
-        manifest: function manifest(duration, levels_, loadmetrics) {
+        manifest: function manifest(duration, levels_) {
           var audioTracks = _this2._api.getAudioTrackList();
           var parsedAudioTracks = [];
           if (audioTracks) {
@@ -1013,6 +1087,9 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
           _this2._trigger(_playkitJs.EventType.TRACKS_CHANGED, { tracks: videoTracks.concat(parsedAudioTracks) });
         },
         seekState: function seekState(newState) {
+          if (_this2._firstPlay) {
+            return;
+          }
           if (newState === 'SEEKING') {
             _this2._trigger(_playkitJs.EventType.SEEKING);
             _this2._trigger(_playkitJs.EventType.WAITING);
@@ -1030,7 +1107,6 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
               _this2._trigger(_playkitJs.EventType.PLAYING);
               _this2._firstPlay = false;
               break;
-
             case "PAUSED_BUFFERING":
               _this2._trigger(_playkitJs.EventType.WAITING);
               break;
@@ -1045,20 +1121,12 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
       // Create a single global callback function and pass it's name
       // to the SWF with the name `callback` in the FlashVars parameter.
       window.flashlsCallback = function (eventName, args) {
-        // console.warn(eventName,args);
         if (flashlsEvents[eventName]) {
           flashlsEvents[eventName].apply(null, args);
         }
       };
       return this._el;
     }
-    /**
-     * Dispatch an adapter event forward.
-     * @param {string} name - The name of the event.
-     * @param {?Object} payload - The event payload.
-     * @returns {void}
-     */
-
   }, {
     key: "load",
     value: function load(startTime) {
@@ -1088,12 +1156,16 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
   }, {
     key: "pause",
     value: function pause() {
-      this._api.pause();
+      if (this._api) {
+        this._api.pause();
+      }
     }
   }, {
     key: "seek",
     value: function seek(to) {
-      this._api.seek(to);
+      if (this._api) {
+        this._api.seek(to);
+      }
     }
   }, {
     key: "volume",
@@ -1120,8 +1192,6 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
       if (this._api) {
         this._api.setAudioTrack(audioTrack.id);
         this._trigger(_playkitJs.EventType.AUDIO_TRACK_CHANGED, { selectedAudioTrack: audioTrack });
-      } else {
-        console.error("no API");
       }
     }
   }, {
@@ -1136,8 +1206,6 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
         } else {
           this._trigger(_playkitJs.EventType.ABR_MODE_CHANGED, { mode: 'manual' });
         }
-      } else {
-        console.error("no API :-(");
       }
     }
   }, {
@@ -1146,6 +1214,22 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
       if (this._api) {
         return this._api.getAutoLevelCapping();
       }
+    }
+  }, {
+    key: "getBufferLength",
+    value: function getBufferLength() {
+      if (this._api) {
+        return this._api.getbufferLength();
+      }
+      return 0;
+    }
+  }, {
+    key: "getBackBufferLength",
+    value: function getBackBufferLength() {
+      if (this._api) {
+        return this._api.getbackBufferLength();
+      }
+      return 0;
     }
   }, {
     key: "_trigger",
@@ -1160,7 +1244,7 @@ var FlashHLSAdapter = function (_FakeEventTarget) {
 exports.default = FlashHLSAdapter;
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1387,12 +1471,6 @@ var FlashAPI = function () {
 }();
 
 exports.default = FlashAPI;
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-module.exports = {}
 
 /***/ })
 /******/ ]);
