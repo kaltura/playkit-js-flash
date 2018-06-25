@@ -21,9 +21,9 @@ export default class FlashIsSupported implements ICapability {
 
     } catch (e) {
       try {
-        if (navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
-          version = (navigator.plugins['Shockwave Flash 2.0'] ||
-            navigator.plugins['Shockwave Flash'])
+        if (window.navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
+          version = (window.navigator.plugins['Shockwave Flash 2.0'] ||
+            window.navigator.plugins['Shockwave Flash'])
             .description
             .replace(/\D+/g, ',')
             .match(/^,?(.+),?$/)[1];
@@ -32,7 +32,8 @@ export default class FlashIsSupported implements ICapability {
         // ignore
       }
     }
-    FlashIsSupported._result =  version.split(',')[0] >= 10;
+    let majorVersion: number =  parseInt(version.split(',')[0]);
+    FlashIsSupported._result =  majorVersion >= 10;
 
   }
 
@@ -43,6 +44,6 @@ export default class FlashIsSupported implements ICapability {
    * @public
    */
   static getCapability(): Promise<CapabilityResult> {
-    return Promise.resolve({isSupported: FlashIsSupported._result});
+    return Promise.resolve({isSupported: FlashIsSupported._result,autoplay: true, mutedAutoPlay: true});
   }
 }
