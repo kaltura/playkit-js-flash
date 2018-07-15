@@ -7,7 +7,8 @@ import {
   IEngine,
   ICapability,
   EventType,
-Utils} from 'playkit-js';
+  Utils} from 'playkit-js';
+import * as JsLogger from 'js-logger';
 import FlashIsSupported from './capabilities/flash-is-supported';
 import FlashHLSAdapter from './flashhls-adapter';
 
@@ -70,6 +71,14 @@ export default class Flash extends FakeEventTarget implements IEngine {
   _seeking: boolean = false;
 
   _srcToLoad: ?string;
+
+  /**
+   * The Flash class logger.
+   * @type {any}
+   * @static
+   * @private
+   */
+  static _logger: any = JsLogger.get('Flash');
 
   /**
    * The flash capabilities handlers.
@@ -185,6 +194,43 @@ export default class Flash extends FakeEventTarget implements IEngine {
   }
 
   /**
+   * get the playback rates
+   * @return {number[]} - playback rates
+   */
+  get playbackRates(): Array<number> {
+    return [1];
+  }
+
+  /**
+   * Sets the current playback speed of the audio/video.
+   * @param {Number} playbackRate - The playback speed value.
+   * @public
+   * @returns {void}
+   */
+  set playbackRate(playbackRate: number): void {
+    if (playbackRate != 1) {
+      Flash._logger.debug('This engine doesnt support playback rate <> 1')
+    }
+  }
+
+  /**
+   * Gets the current playback speed of the audio/video.
+   * @returns {Number} - The current playback speed value.
+   * @public
+   */
+  get playbackRate(): number {
+    return 1;
+  }
+
+  /**
+   * Gets the default playback speed of the audio/video.
+   * @returns {Number} - The default playback speed value.
+   * @public
+   */
+  get defaultPlaybackRate(): number {
+    return 1;
+  }
+  /**
    * Get the engine's id
    * @public
    * @returns {string} the engine's id
@@ -240,6 +286,8 @@ export default class Flash extends FakeEventTarget implements IEngine {
       });
       this._eventManager.listen(this._api, EventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
       this._eventManager.listen(this._api, EventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+    } else {
+      Flash._logger.warn('Unable to attach flash - api is missing');
     }
   }
 
@@ -336,6 +384,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   load(startTime: ?number): Promise<Object> {
     if (!this._api) {
+      Flash._logger.warn("Missing API - Flash is not ready");
       return Promise.reject("Flash is not ready");
     }
     this._src = this._srcToLoad;
@@ -568,6 +617,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   seekToLiveEdge(): void {
-    this.currentTime = this.duration;
+    this.currentTime = this.duration - 1;
   }
 }
