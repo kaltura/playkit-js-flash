@@ -1,5 +1,4 @@
 // @flow
-import DefaultConfig from './default-config';
 import {
   FakeEventTarget,
   EventManager,
@@ -45,19 +44,11 @@ export default class Flash extends FakeEventTarget implements IEngine {
 
   _src: ?string;
 
-  _duration: ?number;
-
-  _buffer: ?number;
-
-  _watched: ?number;
-
   _loadPromise: ?Promise<*>;
 
   _volume: ?number;
 
   _volumeBeforeMute: ?number;
-
-  _paused: boolean = true;
 
   /**
    * The event manager of the engine.
@@ -65,10 +56,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @private
    */
   _eventManager: EventManager;
-
-  _ended: boolean = false;
-
-  _seeking: boolean = false;
 
   _srcToLoad: ?string;
 
@@ -159,27 +146,21 @@ export default class Flash extends FakeEventTarget implements IEngine {
 
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
-    this._flashConfig = Utils.Object.getPropertyPath(config, "playback.options.flash");
-    this._flashConfig = Utils.Object.mergeDeep(DefaultConfig, this._flashConfig);
-    this._api = new FlashHLSAdapter(source, this._flashConfig);
+
+    this._api = new FlashHLSAdapter(source, config);
     this._el = this._api.attach();
     this._addBindings();
     this._srcToLoad = source.url;
   }
 
   reset(): void {
+    this._api.reset();
     this._el = null;
     this._src = null;
-    this._duration = null;
-    this._buffer = null;
-    this._watched = null;
     this._loadPromise = null;
     this._volume = null;
     this._volumeBeforeMute = null;
-    this._ended = false;
-    this._seeking = false;
     this._srcToLoad = null;
-    this._paused = true;
   }
 
   /**
@@ -249,43 +230,12 @@ export default class Flash extends FakeEventTarget implements IEngine {
 
   _addBindings(): void{
     if (this._api) {
-      this._eventManager.listen(this._api, EventType.ABR_MODE_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.TRACKS_CHANGED, (event: FakeEvent) =>{ this.dispatchEvent(event)});
-      this._eventManager.listen(this._api, EventType.ERROR, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.PLAYING, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.TIME_UPDATE, (event: FakeEvent) => {
-        if (this._currentTime != event.payload.position) {
-          this.dispatchEvent(event);
-        }
-        this._currentTime = event.payload.position;
-        this._duration = event.payload.duration;
-        this._buffer = event.payload.buffer;
-        this._watched = event.payload.watched;
-        this._paused = false;
-      });
-      this._eventManager.listen(this._api, EventType.PAUSE, (event: FakeEvent) => {
-        this.dispatchEvent(event);
-        this._paused = true;
-      });
-      this._eventManager.listen(this._api, EventType.LOADED_METADATA, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.LOADED_DATA, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.PLAY, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.VOLUME_CHANGE, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.WAITING, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.SEEKING, (event: FakeEvent) => {
-        this.dispatchEvent(event);
-        this._seeking = true;
-      });
-      this._eventManager.listen(this._api, EventType.SEEKED, (event: FakeEvent) =>{
-        this.dispatchEvent(event);
-        this._seeking = false;
-      });
-      this._eventManager.listen(this._api, EventType.ENDED, (event: FakeEvent) =>{
-        this.dispatchEvent(event);
-        this._ended = true;
-      });
-      this._eventManager.listen(this._api, EventType.VIDEO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
-      this._eventManager.listen(this._api, EventType.AUDIO_TRACK_CHANGED, (event: FakeEvent) => this.dispatchEvent(event));
+      let events = [EventType.ABR_MODE_CHANGED, EventType.TRACKS_CHANGED, EventType.ERROR, EventType.PLAYING,  EventType.TIME_UPDATE,
+        EventType.PAUSE, EventType.LOADED_METADATA, EventType.LOADED_DATA, EventType.PLAY, EventType.VOLUME_CHANGE, EventType.WAITING,
+        EventType.SEEKING, EventType.SEEKED, EventType.ENDED, EventType.VIDEO_TRACK_CHANGED, EventType.AUDIO_TRACK_CHANGED];
+      events.forEach(eventName => {
+        this._eventManager.listen(this._api, eventName, (event: FakeEvent) => this.dispatchEvent(event));
+      })
     } else {
       Flash._logger.warn('Unable to attach flash - api is missing');
     }
@@ -334,7 +284,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   enableAdaptiveBitrate(): void {
     if (this._api) {
-      this._api.selectVideoTrack({index: -1});
+      this._api.setABR();
     }
   }
 
@@ -349,7 +299,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
   isAdaptiveBitrateEnabled(): boolean {
     let isAdaptive: boolean = false;
     if (this._api){
-      isAdaptive = this._api.getVideoTrack() == -1;
+      isAdaptive = this._api.isABR();
     }
     return isAdaptive;
   }
@@ -438,7 +388,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get currentTime(): number {
-    return this._currentTime ? this._currentTime : 0;
+    return this._api.currentTime ? this._api.currentTime : 0;
   }
 
   /**
@@ -460,8 +410,8 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   get duration(): number {
     let duration: number = 0;
-    if (this._duration) {
-      duration = this._duration;
+    if (this._api.duration) {
+      duration = this._api.duration;
     } else if (this._api) {
       duration = this._api.getDuration();
     }
@@ -496,7 +446,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get paused(): boolean {
-    return this._paused;
+    return this._api.paused;
   }
 
   /**
@@ -505,7 +455,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get seeking(): boolean {
-    return this._seeking;
+    return this._api.seeking;
   }
 
   /**
@@ -527,7 +477,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
       length: 1, start: () => {
         return 0;
       }, end: () => {
-        return this._watched;
+        return this._api.watched;
       }
     };
   }
@@ -547,9 +497,9 @@ export default class Flash extends FakeEventTarget implements IEngine {
     }
     return {
       length: 1, start: () => {
-        return this._currentTime - backBufferLength;
+        return this._api.currentTime - backBufferLength;
       }, end: () => {
-        return this.currentTime + bufferLength
+        return this._api.currentTime + bufferLength
       }
     };
   }
@@ -607,7 +557,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get ended(): boolean {
-    return this._ended;
+    return this._api.ended;
   }
 
   /**

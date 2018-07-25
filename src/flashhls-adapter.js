@@ -1,6 +1,8 @@
 // @flow
 import {EventType, FakeEventTarget, Utils, FakeEvent,Error, AudioTrack, VideoTrack} from "playkit-js";
 import FlashAPI from "./flash-api";
+import DefaultConfig from './default-config';
+
 
 /**
  * Your class description.
@@ -17,6 +19,14 @@ export default class FlashHLSAdapter extends FakeEventTarget{
   _waitingForLoad: boolean;
   _waitingForPlay: boolean;
   _loadReported: boolean = false;
+  paused: boolean = true;
+  ended: boolean = false;
+  seeking: boolean = false;
+  duration: ?number;
+  buffer: ?number;
+  watched: ?number;
+  currentTime: ?number;
+
 
 
   static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
@@ -71,7 +81,9 @@ export default class FlashHLSAdapter extends FakeEventTarget{
 
   constructor(source: PKMediaSourceObject, config: Object){
     super();
-    this._config = config;
+    let flashConfig = Utils.Object.getPropertyPath(config, "playback.options.flash");
+    flashConfig = Utils.Object.mergeDeep(DefaultConfig, flashConfig);
+    this._config = flashConfig;
     this._src = source;
 
   }
@@ -90,7 +102,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       this._config.flashvars= {};
     }
     this._config.flashvars.callback = 'flashlsCallback';
-    this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl || 'https://cdnapisec.kaltura.com/html5/static/flashhls/v0.4.4.24/flashlsChromeless.swf?inline=1',this._config.flashvars,this._config.params,this._config.attributes)
+    this._el.innerHTML = FlashHLSAdapter.getFlashCode(this._config.swfUrl ,this._config.flashvars,this._config.params,this._config.attributes)
 
     let flashlsEvents = {
       ready:() => {
@@ -118,11 +130,18 @@ export default class FlashHLSAdapter extends FakeEventTarget{
       },
       complete:()=>{
         this._firstPlay = true;
+        this.ended = true;
         this._trigger(EventType.ENDED);
       },
       position:(timemetrics: Object) => {
-        this._trigger(EventType.TIME_UPDATE,timemetrics)
-
+        this.paused = false;
+        this.duration = timemetrics.duration;
+        this.buffer = timemetrics.buffer;
+        this.watched = timemetrics.watched;
+        if (this.currentTime != timemetrics.position) {
+          this.currentTime = timemetrics.position;
+          this._trigger(EventType.TIME_UPDATE, timemetrics);
+        }
       },
       error:(code, url, message)=>{
         const error = new Error(
@@ -171,10 +190,12 @@ export default class FlashHLSAdapter extends FakeEventTarget{
           return;
         }
         if (newState === 'SEEKING') {
+            this.seeking = true;
             this._trigger(EventType.SEEKING);
             this._trigger(EventType.WAITING);
           }
           if (newState === 'SEEKED') {
+            this.seeking = false;
             this._trigger(EventType.SEEKED);
           }
       },
@@ -192,6 +213,7 @@ export default class FlashHLSAdapter extends FakeEventTarget{
             break;
           case "PAUSED":
             this._trigger(EventType.PAUSE);
+            this.paused = true;
             break;
 
         }
@@ -283,9 +305,15 @@ export default class FlashHLSAdapter extends FakeEventTarget{
     }
   }
 
-  getVideoTrack(): ?number {
+  setABR(): void {
     if (this._api){
-      return this._api.getAutoLevelCapping();
+      this._api.playerSetAutoLevelCapping(-1);
+    }
+  }
+
+  isABR(): ?number {
+    if (this._api){
+      return this._api.getAutoLevelCapping() == -1;
     }
   }
 
@@ -305,5 +333,15 @@ export default class FlashHLSAdapter extends FakeEventTarget{
 
   _trigger(name: string, payload?: Object): void {
     this.dispatchEvent(new FakeEvent(name, payload));
+  }
+
+
+  reset(): void {
+    this.paused = true;
+    this.ended = false;
+    this.seeking = false;
+    this.duration = null;
+    this.buffer = null;
+    this.watched = null;
   }
 }
