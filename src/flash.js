@@ -1,22 +1,10 @@
 // @flow
-import {
-  FakeEventTarget,
-  EventManager,
-  FakeEvent,
-  IEngine,
-  ICapability,
-  EventType,
-  Utils} from 'playkit-js';
+import {EventManager, EventType, FakeEvent, FakeEventTarget, ICapability, IEngine} from 'playkit-js';
 import * as JsLogger from 'js-logger';
-import FlashIsSupported from './capabilities/flash-is-supported';
-import FlashHLSAdapter from './flashhls-adapter';
+import {FlashIsSupported} from './capabilities/flash-is-supported';
+import {FlashHLSAdapter} from './flashhls-adapter';
 
-/**
- * Your class description.
- * @classdesc
- */
-export default class Flash extends FakeEventTarget implements IEngine {
-
+class Flash extends FakeEventTarget implements IEngine {
   /**
    * The supported mime types by FLASH HLS Engine.
    * @member {Array<string>} _hlsMimeType
@@ -74,8 +62,8 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   static _capabilities: Array<typeof ICapability> = [FlashIsSupported];
 
+  static id: string = 'flash';
 
-  static id: string = "flash";
   /**
    * Factory method to create an engine.
    * @param {PKMediaSourceObject} source - The selected source object.
@@ -96,10 +84,10 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    * @static
    */
+  // eslint-disable-next-line no-unused-vars
   static canPlaySource(source: PKMediaSourceObject, preferNative: boolean): boolean {
     if (source && source.mimetype) {
-      let canHlsPlayType = (typeof source.mimetype === 'string') ? Flash._hlsMimeTypes.includes(source.mimetype.toLowerCase()) : false;
-      return canHlsPlayType;
+      return typeof source.mimetype === 'string' ? Flash._hlsMimeTypes.includes(source.mimetype.toLowerCase()) : false;
     }
     return false;
   }
@@ -123,15 +111,12 @@ export default class Flash extends FakeEventTarget implements IEngine {
   static getCapabilities(): Promise<Object> {
     let promises = [];
     Flash._capabilities.forEach(capability => promises.push(capability.getCapability()));
-    return Promise.all(promises)
-      .then((arrayOfResults) => {
-        const mergedResults = {};
-        arrayOfResults.forEach(res => Object.assign(mergedResults, res));
-        return {[Flash.id]: mergedResults};
-      });
+    return Promise.all(promises).then(arrayOfResults => {
+      const mergedResults = {};
+      arrayOfResults.forEach(res => Object.assign(mergedResults, res));
+      return {[Flash.id]: mergedResults};
+    });
   }
-
-
 
   /**
    * @constructor
@@ -140,8 +125,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   constructor(source: PKMediaSourceObject, config: Object) {
     super();
-    this._init(source,config);
-
+    this._init(source, config);
   }
 
   _init(source: PKMediaSourceObject, config: Object): void {
@@ -190,7 +174,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   set playbackRate(playbackRate: number): void {
     if (playbackRate != 1) {
-      Flash._logger.debug('This engine doesnt support playback rate <> 1')
+      Flash._logger.debug('This engine doesnt support playback rate <> 1');
     }
   }
 
@@ -211,6 +195,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
   get defaultPlaybackRate(): number {
     return 1;
   }
+
   /**
    * Get the engine's id
    * @public
@@ -228,14 +213,29 @@ export default class Flash extends FakeEventTarget implements IEngine {
     }
   }
 
-  _addBindings(): void{
+  _addBindings(): void {
     if (this._api) {
-      let events = [EventType.ABR_MODE_CHANGED, EventType.TRACKS_CHANGED, EventType.ERROR, EventType.PLAYING,  EventType.TIME_UPDATE,
-        EventType.PAUSE, EventType.LOADED_METADATA, EventType.LOADED_DATA, EventType.PLAY, EventType.VOLUME_CHANGE, EventType.WAITING,
-        EventType.SEEKING, EventType.SEEKED, EventType.ENDED, EventType.VIDEO_TRACK_CHANGED, EventType.AUDIO_TRACK_CHANGED];
+      let events = [
+        EventType.ABR_MODE_CHANGED,
+        EventType.TRACKS_CHANGED,
+        EventType.ERROR,
+        EventType.PLAYING,
+        EventType.TIME_UPDATE,
+        EventType.PAUSE,
+        EventType.LOADED_METADATA,
+        EventType.LOADED_DATA,
+        EventType.PLAY,
+        EventType.VOLUME_CHANGE,
+        EventType.WAITING,
+        EventType.SEEKING,
+        EventType.SEEKED,
+        EventType.ENDED,
+        EventType.VIDEO_TRACK_CHANGED,
+        EventType.AUDIO_TRACK_CHANGED
+      ];
       events.forEach(eventName => {
         this._eventManager.listen(this._api, eventName, (event: FakeEvent) => this.dispatchEvent(event));
-      })
+      });
     } else {
       Flash._logger.warn('Unable to attach flash - api is missing');
     }
@@ -261,7 +261,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
       this._api.selectAudioTrack(audioTrack);
     }
   }
-
 
   /**
    * Select a video track
@@ -298,7 +297,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   isAdaptiveBitrateEnabled(): boolean {
     let isAdaptive: boolean = false;
-    if (this._api){
+    if (this._api) {
       isAdaptive = this._api.isABR();
     }
     return isAdaptive;
@@ -323,7 +322,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
     if (this._src) {
       return this._src;
     }
-    return "";
+    return '';
   }
 
   /**
@@ -334,15 +333,15 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   load(startTime: ?number): Promise<Object> {
     if (!this._api) {
-      Flash._logger.warn("Missing API - Flash is not ready");
-      return Promise.reject("Flash is not ready");
+      Flash._logger.warn('Missing API - Flash is not ready');
+      return Promise.reject('Flash is not ready');
     }
     this._src = this._srcToLoad;
     this._api.load(startTime);
-    this._loadPromise = new Promise((resolve)=>{
-      this._eventManager.listenOnce(this._api,EventType.TRACKS_CHANGED,(tracks)=>{
+    this._loadPromise = new Promise(resolve => {
+      this._eventManager.listenOnce(this._api, EventType.TRACKS_CHANGED, tracks => {
         resolve(tracks);
-      })
+      });
     });
 
     return this._loadPromise;
@@ -365,7 +364,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
     }
   }
 
-  pause(): void{
+  pause(): void {
     if (this._api) {
       this._api.pause();
     }
@@ -380,7 +379,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
   isLive(): boolean {
     return false;
   }
-
 
   /**
    * Get the current time in seconds.
@@ -417,6 +415,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
     }
     return duration;
   }
+
   /**
    * Set playback volume.
    * @param {Number} vol - The volume to set.
@@ -428,7 +427,6 @@ export default class Flash extends FakeEventTarget implements IEngine {
     if (this._api) {
       this._api.volume(vol);
     }
-
   }
 
   /**
@@ -464,7 +462,7 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get seekable(): any {
-   return this.buffered;
+    return this.buffered;
   }
 
   /**
@@ -474,9 +472,11 @@ export default class Flash extends FakeEventTarget implements IEngine {
    */
   get played(): any {
     return {
-      length: 1, start: () => {
+      length: 1,
+      start: () => {
         return 0;
-      }, end: () => {
+      },
+      end: () => {
         return this._api.watched;
       }
     };
@@ -496,14 +496,15 @@ export default class Flash extends FakeEventTarget implements IEngine {
       bufferLength = api.getBufferLength();
     }
     return {
-      length: 1, start: () => {
+      length: 1,
+      start: () => {
         return this._api.currentTime - backBufferLength;
-      }, end: () => {
-        return this._api.currentTime + bufferLength
+      },
+      end: () => {
+        return this._api.currentTime + bufferLength;
       }
     };
   }
-
 
   /**
    * Set player muted state.
@@ -512,12 +513,12 @@ export default class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   set muted(mute: boolean): void {
-    if (mute){
+    if (mute) {
       this._volumeBeforeMute = this.volume;
       this.volume = 0;
     } else {
       if (this._volumeBeforeMute) {
-        this.volume = this._volumeBeforeMute
+        this.volume = this._volumeBeforeMute;
       } else {
         this.volume = 1;
       }
@@ -570,3 +571,5 @@ export default class Flash extends FakeEventTarget implements IEngine {
     this.currentTime = this.duration - 1;
   }
 }
+
+export {Flash};
