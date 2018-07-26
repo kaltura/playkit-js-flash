@@ -1,25 +1,27 @@
 # PlayKit JS FLASH - [FLASH] Adapter for the [PlayKit JS Player]
 
 [![Build Status](https://travis-ci.org/kaltura/playkit-js-flash.svg?branch=master)](https://travis-ci.org/kaltura/playkit-js-flash)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 PlayKit JS Flash adapter integrates [FLASH.HLS] with the [PlayKit JS Player].
 
 PlayKit JS Flash is written in [ECMAScript6], statically analysed using [Flow] and transpiled in ECMAScript5 using [Babel].
 
-[FLASH.HLS]: https://github.com/mangui/flashls
-[FLASH.HLS configuration]: https://github.com/mangui/flashls#configuration
-[Flow]: https://flow.org/
-[ECMAScript6]: https://github.com/ericdouglas/ES6-Learning#articles--tutorials
-[Babel]: https://babeljs.io
+[flash.hls]: https://github.com/mangui/flashls
+[flash.hls configuration]: https://github.com/mangui/flashls#configuration
+[flow]: https://flow.org/
+[ecmascript6]: https://github.com/ericdouglas/ES6-Learning#articles--tutorials
+[babel]: https://babeljs.io
 
 ## Getting Started
 
 ### Prerequisites
+
 The adapter requires [PlayKit JS Player] to be loaded first.
 
 The adapter uses the [FLASH.HLS] swf library.
 
-[Playkit JS Player]: https://github.com/kaltura/playkit-js
+[playkit js player]: https://github.com/kaltura/playkit-js
 
 ### Installing
 
@@ -83,12 +85,14 @@ The configuration is exposed via the playback section:
 
 Tests can be run locally via [Karma], which will run on Chrome, Firefox and Safari
 
-[Karma]: https://karma-runner.github.io/1.0/index.html
+[karma]: https://karma-runner.github.io/1.0/index.html
+
 ```
 yarn run test
 ```
 
 You can test individual browsers:
+
 ```
 yarn run test:chrome
 yarn run test:firefox
@@ -102,7 +106,6 @@ We use ESLint [recommended set](http://eslint.org/docs/rules/) with some additio
 See [ESLint config](.eslintrc.json) for full configuration.
 
 We also use [.editorconfig](.editorconfig) to maintain consistent coding styles and settings, please make sure you comply with the styling.
-
 
 ## Compatibility
 
