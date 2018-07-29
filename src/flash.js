@@ -1,6 +1,5 @@
 // @flow
-import {EventManager, EventType, FakeEvent, FakeEventTarget, ICapability, IEngine} from 'playkit-js';
-import * as JsLogger from 'js-logger';
+import {getLogger, EventManager, EventType, FakeEvent, FakeEventTarget, ICapability, IEngine} from 'playkit-js';
 import {FlashIsSupported} from './capabilities/flash-is-supported';
 import {FlashHLSAdapter} from './flashhls-adapter';
 
@@ -53,7 +52,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @static
    * @private
    */
-  static _logger: any = JsLogger.get('Flash');
+  static _logger: any = getLogger('Flash');
 
   /**
    * The flash capabilities handlers.
@@ -138,7 +137,9 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   reset(): void {
-    this._api.reset();
+    if (this._api) {
+      this._api.reset();
+    }
     this._el = null;
     this._src = null;
     this._loadPromise = null;
@@ -386,7 +387,10 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get currentTime(): number {
-    return this._api.currentTime ? this._api.currentTime : 0;
+    if (this._api && this._api.currentTime) {
+      return this._api.currentTime;
+    }
+    return 0;
   }
 
   /**
@@ -408,10 +412,8 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   get duration(): number {
     let duration: number = 0;
-    if (this._api.duration) {
-      duration = this._api.duration;
-    } else if (this._api) {
-      duration = this._api.getDuration();
+    if (this._api) {
+      duration = this._api.duration ? this._api.duration : this._api.getDuration();
     }
     return duration;
   }
@@ -444,7 +446,10 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get paused(): boolean {
-    return this._api.paused;
+    if (this._api) {
+      return this._api.paused;
+    }
+    return true;
   }
 
   /**
@@ -453,7 +458,10 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get seeking(): boolean {
-    return this._api.seeking;
+    if (this._api) {
+      return this._api.seeking;
+    }
+    return false;
   }
 
   /**
@@ -477,7 +485,9 @@ class Flash extends FakeEventTarget implements IEngine {
         return 0;
       },
       end: () => {
-        return this._api.watched;
+        if (this._api) {
+          return this._api.watched;
+        } else return 0;
       }
     };
   }
@@ -490,18 +500,20 @@ class Flash extends FakeEventTarget implements IEngine {
   get buffered(): any {
     let bufferLength: number = 0;
     let backBufferLength: number = 0;
+    let currentTime: number = 0;
     if (this._api) {
       let api = this._api;
       backBufferLength = api.getBackBufferLength();
       bufferLength = api.getBufferLength();
+      currentTime = api.currentTime ? api.currentTime : 0;
     }
     return {
       length: 1,
       start: () => {
-        return this._api.currentTime - backBufferLength;
+        return currentTime - backBufferLength;
       },
       end: () => {
-        return this._api.currentTime + bufferLength;
+        return currentTime + bufferLength;
       }
     };
   }
@@ -558,7 +570,10 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get ended(): boolean {
-    return this._api.ended;
+    if (this._api) {
+      return this._api.ended;
+    }
+    return false;
   }
 
   /**

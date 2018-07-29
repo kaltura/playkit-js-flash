@@ -299,10 +299,11 @@ class FlashHLSAdapter extends FakeEventTarget {
     }
   }
 
-  isABR(): ?number {
+  isABR(): boolean {
     if (this._api) {
       return this._api.getAutoLevelCapping() == -1;
     }
+    return false;
   }
 
   getBufferLength(): number {
