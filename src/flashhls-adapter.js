@@ -282,26 +282,24 @@ class FlashHLSAdapter extends FakeEventTarget {
 
   selectVideoTrack(videoTrack: VideoTrack): void {
     if (this._api) {
-      this._api.playerSetAutoLevelCapping(videoTrack.index);
-      this._trigger(EventType.VIDEO_TRACK_CHANGED, {selectedVideoTrack: videoTrack});
-
-      if (videoTrack.index == -1) {
-        this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'auto'});
-      } else {
+      if ( this.isABR() ) {
         this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'manual'});
       }
+      this._api.setCurrentLevel(videoTrack.index);
+      this._trigger(EventType.VIDEO_TRACK_CHANGED, {selectedVideoTrack: videoTrack});
     }
   }
 
   setABR(): void {
     if (this._api) {
-      this._api.playerSetAutoLevelCapping(-1);
+      this._api.setCurrentLevel(-1);
+      this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'auto'});
     }
   }
 
   isABR(): boolean {
     if (this._api) {
-      return this._api.getAutoLevelCapping() == -1;
+      return this._api.getAutoLevel();
     }
     return false;
   }
