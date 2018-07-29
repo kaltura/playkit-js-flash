@@ -106,7 +106,7 @@ class FlashHLSAdapter extends FakeEventTarget {
           this.volume(this._initialVolume);
         }
         if (this._waitingForLoad) {
-          this.load();
+          this._api.load(this._src.url);
         }
         if (this._waitingForPlay) {
           this.play();
@@ -175,6 +175,10 @@ class FlashHLSAdapter extends FakeEventTarget {
           };
           videoTracks.push(new VideoTrack(settings));
         }
+        if ( this._resolveLoad ){
+          this._resolveLoad({tracks: videoTracks.concat(parsedAudioTracks)});
+          this._resolveLoad = null;
+        }
         this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
       },
       seekState: newState => {
@@ -220,15 +224,19 @@ class FlashHLSAdapter extends FakeEventTarget {
     return this._el;
   }
 
-  load(startTime: ?number): void {
-    if (startTime) {
-      this._startTime = startTime;
-    }
-    if (this._api) {
-      this._api.load(this._src.url);
-    } else {
-      this._waitingForLoad = true;
-    }
+  load(startTime: ?number): Promise<Object> {
+    this._loadPromise = new Promise(resolve => {
+      this._resolveLoad = resolve;
+      if (startTime) {
+        this._startTime = startTime;
+      }
+      if (this._api) {
+        this._api.load(this._src.url);
+      } else {
+        this._waitingForLoad = true;
+      }
+    });
+    return this._loadPromise;
   }
 
   play() {

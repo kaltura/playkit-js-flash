@@ -338,13 +338,7 @@ class Flash extends FakeEventTarget implements IEngine {
       return Promise.reject('Flash is not ready');
     }
     this._src = this._srcToLoad;
-    this._api.load(startTime);
-    this._loadPromise = new Promise(resolve => {
-      this._eventManager.listenOnce(this._api, EventType.TRACKS_CHANGED, tracks => {
-        resolve(tracks);
-      });
-    });
-
+    this._loadPromise = this._api.load(startTime);
     return this._loadPromise;
   }
 
