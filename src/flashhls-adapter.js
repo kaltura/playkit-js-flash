@@ -11,8 +11,6 @@ class FlashHLSAdapter extends FakeEventTarget {
   _startTime: number;
   _firstPlay: boolean = true;
   _initialVolume: number;
-  _waitingForLoad: boolean;
-  _waitingForPlay: boolean;
   _loadReported: boolean = false;
   paused: boolean = true;
   ended: boolean = false;
@@ -21,6 +19,8 @@ class FlashHLSAdapter extends FakeEventTarget {
   buffer: ?number;
   watched: ?number;
   currentTime: ?number;
+  _apiLoadPromise: Promise<*>;
+  _apiLoadResolve: any;
 
   static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
     const objTag = '<object type="application/x-shockwave-flash" ';
@@ -82,6 +82,9 @@ class FlashHLSAdapter extends FakeEventTarget {
     flashConfig = Utils.Object.mergeDeep(DefaultConfig, flashConfig);
     this._config = flashConfig;
     this._src = source;
+    this._apiLoadPromise = new Promise(resolve => {
+      this._apiLoadResolve = resolve;
+    });
   }
 
   destroy(): void {
@@ -105,16 +108,11 @@ class FlashHLSAdapter extends FakeEventTarget {
         if (this._initialVolume != null) {
           this.volume(this._initialVolume);
         }
-        if (this._waitingForLoad) {
-          this._api.load(this._src.url);
-        }
-        if (this._waitingForPlay) {
-          this.play();
-        }
         if (this._config.debug) {
           this._api.playerSetLogDebug(true);
           this._api.playerSetLogDebug2(true);
         }
+        this._apiLoadResolve();
       },
       levelLoaded: loadmetrics => {
         if (!this._loadReported) {
@@ -230,26 +228,22 @@ class FlashHLSAdapter extends FakeEventTarget {
       if (startTime) {
         this._startTime = startTime;
       }
-      if (this._api) {
+      this._apiLoadPromise.then(()=>{
         this._api.load(this._src.url);
-      } else {
-        this._waitingForLoad = true;
-      }
+      });
     });
     return this._loadPromise;
   }
 
   play() {
-    if (this._api) {
+    this._apiLoadPromise.then(() => {
       if (this._firstPlay) {
         this._api.play(this._startTime ? this._startTime : -1);
       } else {
         this._api.resume();
       }
       this._trigger(EventType.PLAY);
-    } else {
-      this._waitingForPlay = true;
-    }
+    });
   }
 
   pause() {

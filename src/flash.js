@@ -31,7 +31,7 @@ class Flash extends FakeEventTarget implements IEngine {
 
   _src: ?string;
 
-  _loadPromise: ?Promise<*>;
+  _loadPromise: Promise<*>;
 
   _volume: ?number;
 
@@ -142,7 +142,6 @@ class Flash extends FakeEventTarget implements IEngine {
     }
     this._el = null;
     this._src = null;
-    this._loadPromise = null;
     this._volume = null;
     this._volumeBeforeMute = null;
     this._srcToLoad = null;
@@ -348,15 +347,11 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   play(): void {
-    if (!this._loadPromise) {
-      this.load();
-    } else {
-      this._loadPromise.then(() => {
-        if (this._api) {
-          this._api.play();
-        }
-      });
-    }
+    this._loadPromise.then(() => {
+      if (this._api) {
+        this._api.play();
+      }
+    });
   }
 
   pause(): void {
