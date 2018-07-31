@@ -46,6 +46,8 @@ class Flash extends FakeEventTarget implements IEngine {
 
   _srcToLoad: ?string;
 
+  _muted: boolean;
+
   /**
    * The Flash class logger.
    * @type {any}
@@ -127,6 +129,9 @@ class Flash extends FakeEventTarget implements IEngine {
     this._init(source, config);
   }
 
+  hideTextTrack(): void {
+
+  }
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
 
@@ -414,9 +419,13 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   set volume(vol: number): void {
-    this._volume = vol;
-    if (this._api) {
-      this._api.volume(vol);
+    if (this._muted) {
+      this._volumeBeforeMute = vol;
+    } else {
+      this._volume = vol;
+      if (this._api) {
+        this._api.volume(vol);
+      }
     }
   }
 
@@ -515,9 +524,11 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   set muted(mute: boolean): void {
     if (mute) {
-      this._volumeBeforeMute = this.volume;
       this.volume = 0;
+      this._muted = true;
+      this._volumeBeforeMute = this.volume;
     } else {
+      this._muted = false;
       if (this._volumeBeforeMute) {
         this.volume = this._volumeBeforeMute;
       } else {
