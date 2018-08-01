@@ -131,7 +131,7 @@ class FlashHLSAdapter extends FakeEventTarget {
         this.duration = timemetrics.duration;
         this.buffer = timemetrics.buffer;
         this.watched = timemetrics.watched;
-        if (this.currentTime != timemetrics.position) {
+        if (this.currentTime != timemetrics.position || this.ended) {
           this.currentTime = timemetrics.position;
           this._trigger(EventType.TIME_UPDATE, timemetrics);
         }
@@ -173,7 +173,7 @@ class FlashHLSAdapter extends FakeEventTarget {
           };
           videoTracks.push(new VideoTrack(settings));
         }
-        if ( this._resolveLoad ){
+        if (this._resolveLoad) {
           this._resolveLoad({tracks: videoTracks.concat(parsedAudioTracks)});
           this._resolveLoad = null;
         }
@@ -228,7 +228,7 @@ class FlashHLSAdapter extends FakeEventTarget {
       if (startTime) {
         this._startTime = startTime;
       }
-      this._apiLoadPromise.then(()=>{
+      this._apiLoadPromise.then(() => {
         this._api.load(this._src.url);
       });
     });
@@ -238,6 +238,7 @@ class FlashHLSAdapter extends FakeEventTarget {
   play() {
     this._apiLoadPromise.then(() => {
       if (this._firstPlay) {
+        this.ended = false;
         this._api.play(this._startTime ? this._startTime : -1);
       } else {
         this._api.resume();
@@ -284,7 +285,7 @@ class FlashHLSAdapter extends FakeEventTarget {
 
   selectVideoTrack(videoTrack: VideoTrack): void {
     if (this._api) {
-      if ( this.isABR() ) {
+      if (this.isABR()) {
         this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'manual'});
       }
       this._api.setCurrentLevel(videoTrack.index);
