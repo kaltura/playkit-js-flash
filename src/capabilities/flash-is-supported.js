@@ -1,10 +1,10 @@
 // @flow
-import {ICapability} from 'playkit-js'
+import {ICapability} from 'playkit-js';
 
-export default class FlashIsSupported implements ICapability {
+class FlashIsSupported implements ICapability {
   static _result: boolean;
 
-  /***
+  /**
    * Runs the test for isSupported capability.
    * @public
    * @static
@@ -18,13 +18,10 @@ export default class FlashIsSupported implements ICapability {
         .GetVariable('$version')
         .replace(/\D+/g, ',')
         .match(/^,?(.+),?$/)[1];
-
     } catch (e) {
       try {
         if (window.navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
-          version = (window.navigator.plugins['Shockwave Flash 2.0'] ||
-            window.navigator.plugins['Shockwave Flash'])
-            .description
+          version = (window.navigator.plugins['Shockwave Flash 2.0'] || window.navigator.plugins['Shockwave Flash']).description
             .replace(/\D+/g, ',')
             .match(/^,?(.+),?$/)[1];
         }
@@ -32,9 +29,8 @@ export default class FlashIsSupported implements ICapability {
         // ignore
       }
     }
-    let majorVersion: number =  parseInt(version.split(',')[0]);
-    FlashIsSupported._result =  majorVersion >= 10;
-
+    let majorVersion: number = parseInt(version.split(',')[0]);
+    FlashIsSupported._result = majorVersion >= 10;
   }
 
   /**
@@ -44,6 +40,8 @@ export default class FlashIsSupported implements ICapability {
    * @public
    */
   static getCapability(): Promise<CapabilityResult> {
-    return Promise.resolve({isSupported: FlashIsSupported._result,autoplay: true, mutedAutoPlay: true});
+    return Promise.resolve({isSupported: FlashIsSupported._result, autoplay: true, mutedAutoPlay: true});
   }
 }
+
+export {FlashIsSupported};

@@ -1,7 +1,5 @@
 // @flow
-
-export default class FlashAPI  {
-
+class FlashAPI {
   flashObject: any;
 
   constructor(flashObject: any): void {
@@ -167,5 +165,6 @@ export default class FlashAPI  {
   getAutoLevelCapping(): number {
     return this.flashObject.getAutoLevelCapping();
   }
-
 }
+
+export {FlashAPI};
