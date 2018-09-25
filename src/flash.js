@@ -112,7 +112,7 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   /**
-   * Runs the html5 capabilities tests.
+   * Runs the flash capabilities tests.
    * @returns {void}
    * @public
    * @static
@@ -121,7 +121,7 @@ class Flash extends FakeEventTarget implements IEngine {
 
   /**
    * Gets the flash capabilities.
-   * @return {Promise<Object>} - The html5 capabilities object.
+   * @return {Promise<Object>} - The flash capabilities object.
    * @public
    * @static
    */
