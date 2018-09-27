@@ -126,7 +126,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @static
    */
   static getCapabilities(): Promise<Object> {
-    return Promise.resolve({autoplay: true, mutedAutoPlay: true});
+    return Promise.resolve({[Flash.id]: {autoplay: true, mutedAutoPlay: true}});
   }
 
   /**
