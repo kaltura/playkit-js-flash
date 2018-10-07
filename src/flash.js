@@ -1,5 +1,5 @@
 // @flow
-import {getLogger, EventManager, EventType, FakeEvent, FakeEventTarget, ICapability, IEngine} from 'playkit-js';
+import {getLogger, EventManager, EventType, FakeEvent, FakeEventTarget, ICapability, IEngine, Utils} from 'playkit-js';
 import {FlashIsSupported} from './capabilities/flash-is-supported';
 import {FlashHLSAdapter} from './flashhls-adapter';
 
@@ -126,17 +126,15 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   constructor(source: PKMediaSourceObject, config: Object) {
     super();
+    this._el = this._el || Utils.Dom.createElement('div');
     this._init(source, config);
   }
 
-  hideTextTrack(): void {
-
-  }
+  hideTextTrack(): void {}
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
-
-    this._api = new FlashHLSAdapter(source, config);
-    this._el = this._api.attach();
+    this._api = new FlashHLSAdapter(source, config, this._el);
+    this._api.attach();
     this._addBindings();
     this._srcToLoad = source.url;
   }
@@ -145,7 +143,6 @@ class Flash extends FakeEventTarget implements IEngine {
     if (this._api) {
       this._api.reset();
     }
-    this._el = null;
     this._src = null;
     this._volume = null;
     this._volumeBeforeMute = null;

@@ -76,12 +76,13 @@ class FlashHLSAdapter extends FakeEventTarget {
     return `${objTag}${attrsString}>${paramsString}</object>`;
   }
 
-  constructor(source: PKMediaSourceObject, config: Object) {
+  constructor(source: PKMediaSourceObject, config: Object, el: HTMLDivElement) {
     super();
     let flashConfig = Utils.Object.getPropertyPath(config, 'playback.options.flash');
     flashConfig = Utils.Object.mergeDeep(DefaultConfig, flashConfig);
     this._config = flashConfig;
     this._src = source;
+    this._el = el;
     this._apiLoadPromise = new Promise(resolve => {
       this._apiLoadResolve = resolve;
     });
@@ -89,13 +90,11 @@ class FlashHLSAdapter extends FakeEventTarget {
 
   destroy(): void {
     if (this._el && this._el.parentNode) {
-      this._el.parentNode.removeChild(this._el);
       this._el.innerHTML = '';
     }
   }
 
   attach(): HTMLDivElement {
-    this._el = Utils.Dom.createElement('div');
     if (!this._config.flashvars) {
       this._config.flashvars = {};
     }
