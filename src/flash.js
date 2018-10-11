@@ -136,7 +136,7 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   constructor(source: PKMediaSourceObject, config: Object) {
     super();
-    this._el = this._el || Utils.Dom.createElement('div');
+    this._el = Utils.Dom.createElement('div');
     this._init(source, config);
   }
 
