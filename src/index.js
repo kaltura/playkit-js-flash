@@ -8,9 +8,6 @@ declare var __NAME__: string;
 export {Flash as Engine};
 export {__VERSION__ as VERSION, __NAME__ as NAME};
 
-Flash.runCapabilities();
-Flash.getCapabilities().then(capabilites => {
-  if (capabilites['flash'].isSupported) {
-    registerEngine(Flash);
-  }
-});
+if (Flash.isSupported()) {
+  registerEngine(Flash.id, Flash);
+}
