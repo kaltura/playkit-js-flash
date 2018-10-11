@@ -1,6 +1,5 @@
 // @flow
-import {getLogger, EventManager, EventType, FakeEvent, FakeEventTarget, ICapability, IEngine} from 'playkit-js';
-import {FlashIsSupported} from './capabilities/flash-is-supported';
+import {EventManager, EventType, FakeEvent, FakeEventTarget, getLogger, IEngine} from 'playkit-js';
 import {FlashHLSAdapter} from './flashhls-adapter';
 
 class Flash extends FakeEventTarget implements IEngine {
@@ -56,13 +55,6 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   static _logger: any = getLogger('Flash');
 
-  /**
-   * The flash capabilities handlers.
-   * @private
-   * @static
-   */
-  static _capabilities: Array<typeof ICapability> = [FlashIsSupported];
-
   static id: string = 'flash';
 
   /**
@@ -94,29 +86,47 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   /**
-   * Runs the html5 capabilities tests.
+   * Checks if flash is supported.
+   * @returns {boolean} - Whether the flash engine is supported.
+   */
+  static isSupported(): boolean {
+    let version = '0,0,0';
+    try {
+      version = new window.ActiveXObject('ShockwaveFlash.ShockwaveFlash')
+        .GetVariable('$version')
+        .replace(/\D+/g, ',')
+        .match(/^,?(.+),?$/)[1];
+    } catch (e) {
+      try {
+        if (window.navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
+          version = (window.navigator.plugins['Shockwave Flash 2.0'] || window.navigator.plugins['Shockwave Flash']).description
+            .replace(/\D+/g, ',')
+            .match(/^,?(.+),?$/)[1];
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    let majorVersion: number = parseInt(version.split(',')[0]);
+    return majorVersion >= 10;
+  }
+
+  /**
+   * Runs the flash capabilities tests.
    * @returns {void}
    * @public
    * @static
    */
-  static runCapabilities(): void {
-    Flash._capabilities.forEach(capability => capability.runCapability());
-  }
+  static runCapabilities(): void {}
 
   /**
    * Gets the flash capabilities.
-   * @return {Promise<Object>} - The html5 capabilities object.
+   * @return {Promise<Object>} - The flash capabilities object.
    * @public
    * @static
    */
   static getCapabilities(): Promise<Object> {
-    let promises = [];
-    Flash._capabilities.forEach(capability => promises.push(capability.getCapability()));
-    return Promise.all(promises).then(arrayOfResults => {
-      const mergedResults = {};
-      arrayOfResults.forEach(res => Object.assign(mergedResults, res));
-      return {[Flash.id]: mergedResults};
-    });
+    return Promise.resolve({[Flash.id]: {autoplay: true, mutedAutoPlay: true}});
   }
 
   /**
@@ -129,9 +139,8 @@ class Flash extends FakeEventTarget implements IEngine {
     this._init(source, config);
   }
 
-  hideTextTrack(): void {
+  hideTextTrack(): void {}
 
-  }
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
 
