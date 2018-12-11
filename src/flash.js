@@ -86,6 +86,14 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   /**
+   * empty implementation
+   * @returns {void}
+   * @private
+   * @public
+   */
+  static prepareVideoElement(): void {}
+
+  /**
    * Checks if flash is supported.
    * @returns {boolean} - Whether the flash engine is supported.
    */
