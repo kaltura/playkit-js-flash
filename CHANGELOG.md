@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.2.1"></a>
+## [1.2.1](https://github.com/kaltura/playkit-js-js-comscore/compare/v1.2.0...v1.2.1) (2018-12-12)
+
+
+### Bug Fixes
+
+* **FEC-8760:** player hangs when using flash ([#5](https://github.com/kaltura/playkit-js-js-comscore/issues/5)) ([f2ec9ed](https://github.com/kaltura/playkit-js-js-comscore/commit/f2ec9ed))
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/kaltura/playkit-js-js-comscore/compare/v1.1.0...v1.2.0) (2018-10-11)
 
