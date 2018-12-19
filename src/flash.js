@@ -149,6 +149,9 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   hideTextTrack(): void {}
+
+  resetAllCues(): void {}
+
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
     this._api = new FlashHLSAdapter(source, config, this._el);
