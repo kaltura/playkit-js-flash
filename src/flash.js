@@ -1,5 +1,5 @@
 // @flow
-import {EventManager, EventType, FakeEvent, FakeEventTarget, getLogger, IEngine, Utils} from 'playkit-js';
+import {EventManager, EventType, FakeEvent, FakeEventTarget, getLogger, IEngine, Utils} from '@playkit-js/playkit-js';
 import {FlashHLSAdapter} from './flashhls-adapter';
 
 class Flash extends FakeEventTarget implements IEngine {
@@ -158,10 +158,12 @@ class Flash extends FakeEventTarget implements IEngine {
 
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
-    this._api = new FlashHLSAdapter(source, config, this._el);
-    this._api.attach();
-    this._addBindings();
-    this._srcToLoad = source.url;
+    if (this._el) {
+      this._api = new FlashHLSAdapter(source, config, this._el);
+      this._api.attach();
+      this._addBindings();
+      this._srcToLoad = source.url;
+    }
   }
 
   reset(): void {

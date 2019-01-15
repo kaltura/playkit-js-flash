@@ -1,7 +1,6 @@
 'use strict';
 
 const webpack = require('webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
 const PROD = process.env.NODE_ENV === 'production';
 const packageData = require('./package.json');
@@ -15,15 +14,6 @@ const plugins = [
 
 if (PROD) {
   plugins.push(new webpack.optimize.UglifyJsPlugin({sourceMap: true}));
-} else {
-  plugins.push(
-    new CopyWebpackPlugin([
-      {
-        from: '',
-        to: '.'
-      }
-    ])
-  );
 }
 
 module.exports = {
@@ -65,9 +55,9 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules']
   },
   externals: {
-    'playkit-js': {
-      commonjs: 'playkit-js',
-      commonjs2: 'playkit-js',
+    '@playkit-js/playkit-js': {
+      commonjs: '@playkit-js/playkit-js',
+      commonjs2: '@playkit-js/playkit-js',
       amd: 'playkit-js',
       root: ['KalturaPlayer', 'core']
     }

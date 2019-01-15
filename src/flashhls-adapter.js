@@ -1,5 +1,5 @@
 // @flow
-import {AudioTrack, Error, EventType, FakeEvent, FakeEventTarget, Utils, VideoTrack} from 'playkit-js';
+import {AudioTrack, Error, EventType, FakeEvent, FakeEventTarget, Utils, VideoTrack} from '@playkit-js/playkit-js';
 import {FlashAPI} from './flash-api';
 import DefaultConfig from './default-config';
 
