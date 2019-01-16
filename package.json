@@ -1,5 +1,5 @@
 {
-  "name": "playkit-js-flash",
+  "name": "@playkit-js/playkit-js-flash",
   "version": "1.2.1",
   "main": "dist/playkit-flash.js",
   "scripts": {
