@@ -1,6 +1,6 @@
 # PlayKit JS FLASH - [FLASH] Adapter for the [PlayKit JS Player]
 
-[![Build Status](https://travis-ci.org/kaltura/playkit-js-flash.svg?branch=master)](https://travis-ci.org/kaltura/playkit-js-flash)
+[![Build Status](https://travis-ci.com/kaltura/playkit-js-flash.svg?branch=master)](https://travis-ci.org/kaltura/playkit-js-flash)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 PlayKit JS Flash adapter integrates [FLASH.HLS] with the [PlayKit JS Player].
