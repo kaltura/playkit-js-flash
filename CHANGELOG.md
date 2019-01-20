@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.2.2"></a>
+## [1.2.2](https://github.com/kaltura/playkit-js-flash/compare/v1.2.1...v1.2.2) (2019-01-20)
+
+
+### Bug Fixes
+
+* **FEC-8572:** add missing API methods ([#6](https://github.com/kaltura/playkit-js-flash/issues/6)) ([bb48749](https://github.com/kaltura/playkit-js-flash/commit/bb48749))
+
+
+
 <a name="1.2.1"></a>
 ## [1.2.1](https://github.com/kaltura/playkit-js-js-comscore/compare/v1.2.0...v1.2.1) (2018-12-12)
 
