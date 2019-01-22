@@ -26,6 +26,7 @@ module.exports = {
     filename: '[name].js',
     library: ['playkit', 'flash'],
     libraryTarget: 'umd',
+    umdNamedDefine: true,
     devtoolModuleFilenameTemplate: './flash/[resource-path]'
   },
   devtool: 'source-map',
