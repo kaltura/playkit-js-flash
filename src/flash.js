@@ -609,6 +609,14 @@ class Flash extends FakeEventTarget implements IEngine {
   seekToLiveEdge(): void {
     this.currentTime = this.duration - 1;
   }
+
+  get targetBuffer(): number {
+    return NaN;
+  }
+
+  get availableBuffer(): number {
+    return NaN;
+  }
 }
 
 export {Flash};
