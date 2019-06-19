@@ -2,7 +2,6 @@
 
 const webpack = require('webpack');
 const path = require('path');
-const PROD = process.env.NODE_ENV === 'production';
 const packageData = require('./package.json');
 
 const plugins = [
@@ -12,10 +11,6 @@ const plugins = [
   })
 ];
 
-if (PROD) {
-  plugins.push(new webpack.optimize.UglifyJsPlugin({sourceMap: true}));
-}
-
 module.exports = {
   context: __dirname + '/src',
   entry: {
@@ -24,10 +19,10 @@ module.exports = {
   output: {
     path: __dirname + '/dist',
     filename: '[name].js',
-    library: ['playkit', 'flash'],
+    library: ['playkit', 'engines', 'flash'],
     libraryTarget: 'umd',
     umdNamedDefine: true,
-    devtoolModuleFilenameTemplate: './flash/[resource-path]'
+    devtoolModuleFilenameTemplate: './engines/flash/[resource-path]'
   },
   devtool: 'source-map',
   plugins: plugins,
@@ -35,17 +30,8 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: [
-          {
-            loader: 'babel-loader'
-          }
-        ],
-        exclude: [/node_modules/, /bin/]
-      },
-      {
-        test: /\.js$/,
-        exclude: [/bin/, /node_modules/],
-        enforce: 'pre'
+        exclude: [/node_modules/, /bin/],
+        use: ['babel-loader', 'eslint-loader']
       }
     ]
   },
@@ -60,7 +46,7 @@ module.exports = {
       commonjs: '@playkit-js/playkit-js',
       commonjs2: '@playkit-js/playkit-js',
       amd: 'playkit-js',
-      root: ['KalturaPlayer', 'core']
+      root: ['playkit', 'core']
     }
   }
 };
