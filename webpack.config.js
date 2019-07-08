@@ -22,7 +22,7 @@ module.exports = {
     library: ['playkit', 'engines', 'flash'],
     libraryTarget: 'umd',
     umdNamedDefine: true,
-    devtoolModuleFilenameTemplate: './engines/flash/[resource-path]'
+    devtoolModuleFilenameTemplate: './playkit/engines/flash/[resource-path]'
   },
   devtool: 'source-map',
   plugins: plugins,
