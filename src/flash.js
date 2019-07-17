@@ -148,6 +148,11 @@ class Flash extends FakeEventTarget implements IEngine {
     this._init(source, config);
   }
 
+  // eslint-disable-next-line no-unused-vars
+  attachMediaSource(playbackEnded: ?boolean): void {}
+  // eslint-disable-next-line no-unused-vars
+  detachMediaSource(playbackEnded: ?boolean): void {}
+
   hideTextTrack(): void {}
 
   resetAllCues(): void {}
