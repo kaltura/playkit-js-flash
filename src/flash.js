@@ -148,6 +148,10 @@ class Flash extends FakeEventTarget implements IEngine {
     this._init(source, config);
   }
 
+  attachMediaSource(): void {}
+
+  detachMediaSource(): void {}
+
   hideTextTrack(): void {}
 
   resetAllCues(): void {}
