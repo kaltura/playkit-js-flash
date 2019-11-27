@@ -779,7 +779,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get videoHeight(): number {
-    return this._el.getBoundingClientRect().height;
+    return -1;
   }
 
   /**
@@ -787,7 +787,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get videoWidth(): number {
-    return this._el.getBoundingClientRect().width;
+    return -1;
   }
 
   /**
