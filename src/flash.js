@@ -24,10 +24,20 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {HTMLDivElement}
    * @private
    */
-  _el: ?HTMLDivElement;
+  _el: ?HTMLDivElement = null;
 
-  _api: ?FlashHLSAdapter;
+  /**
+   * The flash hls adapter.
+   * @type {?FlashHLSAdapter}
+   * @private
+   */
+  _api: ?FlashHLSAdapter = null;
 
+  /**
+   * The src
+   * @type {string}
+   * @private
+   */
   _src: ?string = null;
 
   /**
@@ -35,12 +45,27 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {Object}
    * @private
    */
-  _config: Object;
+  _config: Object = null;
 
-  _loadPromise: Promise<*>;
+  /**
+   * Promise when load finished
+   * @type {Promise<*>}
+   * @private
+   */
+  _loadPromise: Promise<*> = null;
 
+  /**
+   * volume value
+   * @type {?number}
+   * @private
+   */
   _volume: ?number = NaN;
 
+  /**
+   * volume value before mute
+   * @type {?number}
+   * @private
+   */
   _volumeBeforeMute: ?number = NaN;
 
   /**
@@ -48,10 +73,15 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {EventManager}
    * @private
    */
-  _eventManager: EventManager;
+  _eventManager: EventManager = null;
 
-  _srcToLoad: ?string;
+  _srcToLoad: ?string = null;
 
+  /**
+   * The state of player mute
+   * @type {boolean}
+   * @private
+   */
   _muted: boolean = this.defaultMuted;
 
   /**
@@ -170,15 +200,11 @@ class Flash extends FakeEventTarget implements IEngine {
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
     this._config = config;
-    this._loadPromise = null;
     if (this._el) {
       this._api = new FlashHLSAdapter(source, config, this._el);
       this._api.attach();
       this._addBindings();
       this._srcToLoad = source.url;
-    } else {
-      this._api = null;
-      this._srcToLoad = null;
     }
   }
 
@@ -584,7 +610,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get muted(): boolean {
-    return this.volume == 0;
+    return this.volume === 0;
   }
 
   /**
@@ -720,7 +746,6 @@ class Flash extends FakeEventTarget implements IEngine {
     return false;
   }
 
-  isPictureInPictureSupported(): void {}
   get isInPictureInPicture(): boolean {
     return false;
   }
@@ -730,7 +755,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get networkState(): number {
-    return NaN;
+    return 1;
   }
 
   /**
@@ -746,23 +771,23 @@ class Flash extends FakeEventTarget implements IEngine {
     if (!this._api) {
       return 0;
     }
-    return NaN;
+    return 4;
   }
 
   /**
-   * @returns {Number} - The height of the video player, in pixels.
+   * @returns {Number} - The height of the video player, in pixels. flash object will take 100 of this element
    * @public
    */
   get videoHeight(): number {
-    return -1;
+    return this._el.getBoundingClientRect().height;
   }
 
   /**
-   * @returns {Number} - The width of the video player, in pixels.
+   * @returns {Number} - The width of the video player, in pixels. flash object will take 100 of this element
    * @public
    */
   get videoWidth(): number {
-    return -1;
+    return this._el.getBoundingClientRect().width;
   }
 
   /**
@@ -780,6 +805,7 @@ class Flash extends FakeEventTarget implements IEngine {
   /**
    * Set crossOrigin attribute.
    * @param {?string} crossOrigin - 'anonymous' or 'use-credentials'
+   * @returns {void}
    */
   set crossOrigin(crossOrigin: ?string): void {}
 
