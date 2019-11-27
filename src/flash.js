@@ -28,13 +28,20 @@ class Flash extends FakeEventTarget implements IEngine {
 
   _api: ?FlashHLSAdapter;
 
-  _src: ?string;
+  _src: ?string = null;
+
+  /**
+   * The player config object.
+   * @type {Object}
+   * @private
+   */
+  _config: Object;
 
   _loadPromise: Promise<*>;
 
-  _volume: ?number;
+  _volume: ?number = NaN;
 
-  _volumeBeforeMute: ?number;
+  _volumeBeforeMute: ?number = NaN;
 
   /**
    * The event manager of the engine.
@@ -45,7 +52,7 @@ class Flash extends FakeEventTarget implements IEngine {
 
   _srcToLoad: ?string;
 
-  _muted: boolean;
+  _muted: boolean = this.defaultMuted;
 
   /**
    * The Flash class logger.
@@ -162,11 +169,16 @@ class Flash extends FakeEventTarget implements IEngine {
 
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
+    this._config = config;
+    this._loadPromise = null;
     if (this._el) {
       this._api = new FlashHLSAdapter(source, config, this._el);
       this._api.attach();
       this._addBindings();
       this._srcToLoad = source.url;
+    } else {
+      this._api = null;
+      this._srcToLoad = null;
     }
   }
 
@@ -175,6 +187,7 @@ class Flash extends FakeEventTarget implements IEngine {
       this._api.reset();
     }
     this._src = null;
+    this._config = null;
     this._volume = null;
     this._volumeBeforeMute = null;
     this._srcToLoad = null;
@@ -620,6 +633,162 @@ class Flash extends FakeEventTarget implements IEngine {
 
   get availableBuffer(): number {
     return NaN;
+  }
+
+  /**
+   * Sets an image to be shown while the video is downloading, or until the user hits the play button.
+   * @param {string} poster - The image url to be shown.
+   * @returns {void}
+   * @public
+   */
+  set poster(poster: string): void {}
+
+  /**
+   * Gets an image to be shown while the video is downloading, or until the user hits the play button.
+   * @returns {poster} - The image url.
+   * @public
+   */
+  get poster(): string {
+    return '';
+  }
+
+  /**
+   * Specifies if and how the author thinks that the video should be loaded when the page loads.
+   * @param {string} preload - The preload value.
+   * @public
+   * @returns {void}
+   */
+  set preload(preload: string): void {}
+
+  /**
+   * Gets the preload value of the video element.
+   * @returns {string} - The preload value.
+   * @public
+   */
+  get preload(): string {
+    return 'none';
+  }
+
+  /**
+   * Set if the video will automatically start playing as soon as it can do so without stopping.
+   * @param {boolean} autoplay - The autoplay value.
+   * @public
+   * @returns {void}
+   */
+  set autoplay(autoplay: boolean): void {}
+
+  /**
+   * Gets the autoplay value of the video element.
+   * @returns {boolean} - The autoplay value.
+   * @public
+   */
+  get autoplay(): boolean {
+    return false;
+  }
+
+  /**
+   * Set to specifies that video controls should be displayed.
+   * @param {boolean} controls - the controls value.
+   * @public
+   * @returns {void}
+   */
+  set controls(controls: boolean): void {}
+
+  /**
+   * Gets the controls value of the video element.
+   * @returns {boolean} - The controls value.
+   * @public
+   */
+  get controls(): boolean {
+    return false;
+  }
+
+  /**
+   * Set to specifies that the video will start over again, every time it is finished.
+   * @param {boolean} loop - the loop value.
+   * @public
+   * @returns {void}
+   */
+  set loop(loop: boolean) {}
+
+  /**
+   * Gets the loop value of the video element.
+   * @returns {boolean} - The loop value.
+   * @public
+   */
+  get loop(): boolean {
+    return false;
+  }
+
+  isPictureInPictureSupported(): void {}
+  get isInPictureInPicture(): boolean {
+    return false;
+  }
+
+  /**
+   * @returns {Number} - The current network state (activity) of the audio/video.
+   * @public
+   */
+  get networkState(): number {
+    return NaN;
+  }
+
+  /**
+   * Indicates if the audio/video is ready to play or not.
+   * @returns {Number} - The current ready state of the audio/video.
+   * 0 = HAVE_NOTHING - no information whether or not the audio/video is ready.
+   * 1 = HAVE_METADATA - metadata for the audio/video is ready.
+   * 2 = HAVE_CURRENT_DATA - data for the current playback position is available, but not enough data to play next frame/millisecond.
+   * 3 = HAVE_FUTURE_DATA - data for the current and at least the next frame is available.
+   * 4 = HAVE_ENOUGH_DATA - enough data available to start playing.
+   */
+  get readyState(): number {
+    if (!this._api) {
+      return 0;
+    }
+    return NaN;
+  }
+
+  /**
+   * @returns {Number} - The height of the video player, in pixels.
+   * @public
+   */
+  get videoHeight(): number {
+    return -1;
+  }
+
+  /**
+   * @returns {Number} - The width of the video player, in pixels.
+   * @public
+   */
+  get videoWidth(): number {
+    return -1;
+  }
+
+  /**
+   * @param {boolean} playsinline - Whether to set on the video tag the playsinline attribute.
+   */
+  set playsinline(playsinline: boolean): void {}
+
+  /**
+   * @returns {boolean} - Whether the video tag has an attribute of playsinline.
+   */
+  get playsinline(): boolean {
+    return this._config.playsinline;
+  }
+
+  /**
+   * Set crossOrigin attribute.
+   * @param {?string} crossOrigin - 'anonymous' or 'use-credentials'
+   */
+  set crossOrigin(crossOrigin: ?string): void {}
+
+  /**
+   * Get crossOrigin attribute.
+   * @returns {?string} - 'anonymous' or 'use-credentials'
+   */
+  get crossOrigin(): ?string {
+    return null;
   }
 }
 
