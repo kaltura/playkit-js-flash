@@ -254,6 +254,7 @@ class FlashHLSAdapter extends FakeEventTarget {
 
   seek(to: number): void {
     if (this._api) {
+      this.currentTime = to;
       this._api.seek(to);
     }
   }
