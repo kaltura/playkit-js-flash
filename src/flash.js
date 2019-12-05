@@ -303,7 +303,8 @@ class Flash extends FakeEventTarget implements IEngine {
         EventType.SEEKED,
         EventType.ENDED,
         EventType.VIDEO_TRACK_CHANGED,
-        EventType.AUDIO_TRACK_CHANGED
+        EventType.AUDIO_TRACK_CHANGED,
+        EventType.DURATION_CHANGE
       ];
       events.forEach(eventName => {
         this._eventManager.listen(this._api, eventName, (event: FakeEvent) => this.dispatchEvent(event));

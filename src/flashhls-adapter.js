@@ -127,7 +127,10 @@ class FlashHLSAdapter extends FakeEventTarget {
       },
       position: (timemetrics: Object) => {
         this.paused = false;
-        this.duration = timemetrics.duration;
+        if (this.duration != timemetrics.duration) {
+          this.duration = timemetrics.duration;
+          this._trigger(EventType.DURATION_CHANGE);
+        }
         this.buffer = timemetrics.buffer;
         this.watched = timemetrics.watched;
         if (this.currentTime != timemetrics.position || this.ended) {
