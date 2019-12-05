@@ -1,13 +1,14 @@
-# Changelog
+# Change Log
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [1.4.1](https://github.com/kaltura/playkit-js-flash/compare/v1.4.0...v1.4.1) (2019-11-28)
+<a name="1.4.2"></a>
+## [1.4.2](https://github.com/kaltura/playkit-js-flash/compare/v1.4.1...v1.4.2) (2019-12-05)
 
 
 ### Bug Fixes
 
-* **FEC-9508:** Playback doesn't work on IE11 windows 7 with plugins ([#13](https://github.com/kaltura/playkit-js-flash/issues/13)) ([df010fc](https://github.com/kaltura/playkit-js-flash/commit/df010fc))
+* **FEC-9471:** slider progress bar exceeds 100% ([#20](https://github.com/kaltura/playkit-js-flash/issues/20)) ([fafad30](https://github.com/kaltura/playkit-js-flash/commit/fafad30))
 
 
 
