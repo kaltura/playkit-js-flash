@@ -431,6 +431,7 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   load(startTime: ?number): Promise<Object> {
     const playbackStartTime = this._startTimeAttach || startTime || 0;
+    this._startTimeAttach = null;
     return this._load(playbackStartTime, this._source);
   }
 
