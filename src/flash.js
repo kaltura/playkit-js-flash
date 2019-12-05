@@ -84,6 +84,13 @@ class Flash extends FakeEventTarget implements IEngine {
   _lastTimeDetach: number = 0;
 
   /**
+   * The start time after attach
+   * @type {number}
+   * @private
+   */
+  _startTimeAttach: number = 0;
+
+  /**
    * The state of player mute
    * @type {boolean}
    * @private
@@ -193,13 +200,15 @@ class Flash extends FakeEventTarget implements IEngine {
 
   attachMediaSource(): void {
     this._init(this._source, this._config);
-    this.load(this._lastTimeDetach);
+    this._startTimeAttach = this._lastTimeDetach;
     this._lastTimeDetach = null;
   }
 
   detachMediaSource(): void {
     this._lastTimeDetach = this.currentTime;
-    this._load(null, {});
+    this._init({}, {});
+    // this._load(null, {});
+    this._loadPromise = null;
   }
 
   hideTextTrack(): void {}
@@ -408,7 +417,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get src(): string {
-    if (this._src) {
+    if (this._loadPromise && this._src) {
       return this._src;
     }
     return '';
@@ -421,7 +430,8 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {Promise<Object>} - The loaded data
    */
   load(startTime: ?number): Promise<Object> {
-    return this._load(startTime, this._source);
+    const playbackStartTime = this._startTimeAttach || startTime || 0;
+    return this._load(playbackStartTime, this._source);
   }
 
   /**
