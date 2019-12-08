@@ -45,7 +45,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {Object}
    * @private
    */
-  _config: ?Object = null;
+  _config: Object;
 
   /**
    * Promise when load finished
@@ -75,7 +75,7 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   _eventManager: EventManager = null;
 
-  _source: PKMediaSourceObject = null;
+  _source: PKMediaSourceObject;
   /**
    * The last time detach occurred
    * @type {number}
@@ -240,10 +240,8 @@ class Flash extends FakeEventTarget implements IEngine {
     }
 
     this._src = null;
-    this._config = null;
     this._volume = null;
     this._volumeBeforeMute = null;
-    this._source = null;
     this._muted = this.defaultMuted;
   }
 
@@ -437,25 +435,13 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {Promise<Object>} - The loaded data
    */
   load(startTime: ?number): Promise<Object> {
-    const playbackStartTime = this._startTimeAttach || startTime || 0;
-    this._startTimeAttach = NaN;
-    return this._load(playbackStartTime, this._source);
-  }
-
-  /**
-   * load media.
-   * @param {?number} startTime - Optional time to start the video from.
-   * @param {?PKMediaSourceObject} source - source object.
-   * @public
-   * @returns {Promise<Object>} - The loaded data
-   */
-  _load(startTime: ?number, source: ?PKMediaSourceObject): Promise<Object> {
     if (!this._api) {
       Flash._logger.warn('Missing API - Flash is not ready');
       return Promise.reject('Flash is not ready');
     }
-    this._src = source.url;
-    this._loadPromise = this._api.load(startTime);
+    this._src = this._source ? this._source.url : null;
+    const playbackStartTime = this._startTimeAttach || startTime || 0;
+    this._loadPromise = this._api.load(playbackStartTime);
     return this._loadPromise;
   }
 

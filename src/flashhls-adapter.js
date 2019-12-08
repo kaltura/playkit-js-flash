@@ -19,8 +19,8 @@ class FlashHLSAdapter extends FakeEventTarget {
   buffer: ?number;
   watched: ?number;
   currentTime: ?number;
-  _apiLoadPromise: ?Promise<*>;
-  _apiLoadResolve: ?any;
+  _apiLoadPromise: Promise<*>;
+  _apiLoadResolve: any;
 
   static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
     const objTag = '<object type="application/x-shockwave-flash" ';
@@ -347,11 +347,6 @@ class FlashHLSAdapter extends FakeEventTarget {
     this._firstPlay = true;
     this._initialVolume = null;
     this._loadReported = false;
-    this._config = null;
-    this._src = null;
-    this._apiLoadPromise = null;
-    this._apiLoadResolve = null;
-    this._api = null;
   }
 }
 
