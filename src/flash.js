@@ -81,14 +81,14 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {number}
    * @private
    */
-  _lastTimeDetach: number = 0;
+  _lastTimeDetach: ?number = NaN;
 
   /**
    * The start time after attach
    * @type {number}
    * @private
    */
-  _startTimeAttach: number = 0;
+  _startTimeAttach: ?number = NaN;
 
   /**
    * The state of player mute
@@ -199,15 +199,16 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   attachMediaSource(): void {
-    this._init(this._source, this._config);
+    this.init(this._source, this._config);
     this._startTimeAttach = this._lastTimeDetach;
     this._lastTimeDetach = null;
   }
 
   detachMediaSource(): void {
     this._lastTimeDetach = this.currentTime;
-    this._init({}, {});
-    // this._load(null, {});
+    const {_source, _config} = this;
+    this.destroy();
+    Utils.Object.mergeDeep(this, {_source, _config});
     this._loadPromise = null;
   }
 
@@ -220,13 +221,9 @@ class Flash extends FakeEventTarget implements IEngine {
   exitPictureInPicture(): void {}
 
   init(source: PKMediaSourceObject, config: Object): void {
+    this._eventManager = new EventManager();
     this._config = config;
     this._source = source;
-    this._init(source, config);
-  }
-
-  _init(source: PKMediaSourceObject, config: Object): void {
-    this._eventManager = new EventManager();
     if (this._el) {
       this._api = new FlashHLSAdapter(source, config, this._el);
       this._api.attach();
@@ -238,11 +235,16 @@ class Flash extends FakeEventTarget implements IEngine {
     if (this._api) {
       this._api.reset();
     }
+    if (this._eventManager) {
+      this._eventManager.removeAll();
+    }
+
     this._src = null;
     this._config = null;
     this._volume = null;
     this._volumeBeforeMute = null;
     this._source = null;
+    this._muted = this.defaultMuted;
   }
 
   /**
@@ -308,6 +310,7 @@ class Flash extends FakeEventTarget implements IEngine {
       this._api.destroy();
       this._eventManager.destroy();
       this.reset();
+      this._api = null;
     }
   }
 
@@ -328,8 +331,11 @@ class Flash extends FakeEventTarget implements IEngine {
         EventType.SEEKING,
         EventType.SEEKED,
         EventType.ENDED,
+        EventType.TEXT_CUE_CHANGED,
         EventType.VIDEO_TRACK_CHANGED,
-        EventType.AUDIO_TRACK_CHANGED
+        EventType.AUDIO_TRACK_CHANGED,
+        EventType.ABORT,
+        EventType.EMPTIED
       ];
       events.forEach(eventName => {
         this._eventManager.listen(this._api, eventName, (event: FakeEvent) => this.dispatchEvent(event));
@@ -431,7 +437,7 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   load(startTime: ?number): Promise<Object> {
     const playbackStartTime = this._startTimeAttach || startTime || 0;
-    this._startTimeAttach = null;
+    this._startTimeAttach = NaN;
     return this._load(playbackStartTime, this._source);
   }
 

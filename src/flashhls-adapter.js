@@ -8,9 +8,9 @@ class FlashHLSAdapter extends FakeEventTarget {
   _el: HTMLDivElement;
   _api: FlashAPI;
   _src: PKMediaSourceObject;
-  _startTime: number;
+  _startTime: ?number;
   _firstPlay: boolean = true;
-  _initialVolume: number;
+  _initialVolume: ?number;
   _loadReported: boolean = false;
   paused: boolean = true;
   ended: boolean = false;
@@ -19,8 +19,8 @@ class FlashHLSAdapter extends FakeEventTarget {
   buffer: ?number;
   watched: ?number;
   currentTime: ?number;
-  _apiLoadPromise: Promise<*>;
-  _apiLoadResolve: any;
+  _apiLoadPromise: ?Promise<*>;
+  _apiLoadResolve: ?any;
 
   static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
     const objTag = '<object type="application/x-shockwave-flash" ';
@@ -92,6 +92,13 @@ class FlashHLSAdapter extends FakeEventTarget {
     if (this._el && this._el.parentNode) {
       this._el.innerHTML = '';
     }
+    //simulate the event sequence like video tag
+    this._trigger(EventType.ABORT);
+    this._trigger(EventType.EMPTIED);
+    //to hide the text tracks simulate event like happened in hls.js
+    this._trigger(EventType.TEXT_CUE_CHANGED, {cues: []});
+    this._trigger(EventType.TIME_UPDATE);
+    this.reset();
   }
 
   attach(): HTMLDivElement {
@@ -329,8 +336,18 @@ class FlashHLSAdapter extends FakeEventTarget {
     this.ended = false;
     this.seeking = false;
     this.duration = null;
+    this.currentTime = null;
     this.buffer = null;
     this.watched = null;
+    this._startTime = null;
+    this._firstPlay = true;
+    this._initialVolume = null;
+    this._loadReported = false;
+    this._config = null;
+    this._src = null;
+    this._apiLoadPromise = null;
+    this._apiLoadResolve = null;
+    this._api = null;
   }
 }
 
