@@ -45,14 +45,14 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {Object}
    * @private
    */
-  _config: Object = null;
+  _config: ?Object = null;
 
   /**
    * Promise when load finished
    * @type {Promise<*>}
    * @private
    */
-  _loadPromise: Promise<*> = null;
+  _loadPromise: ?Promise<*> = null;
 
   /**
    * volume value
@@ -335,7 +335,8 @@ class Flash extends FakeEventTarget implements IEngine {
         EventType.VIDEO_TRACK_CHANGED,
         EventType.AUDIO_TRACK_CHANGED,
         EventType.ABORT,
-        EventType.EMPTIED
+        EventType.EMPTIED,
+        EventType.DURATION_CHANGE
       ];
       events.forEach(eventName => {
         this._eventManager.listen(this._api, eventName, (event: FakeEvent) => this.dispatchEvent(event));
@@ -464,11 +465,13 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   play(): void {
-    this._loadPromise.then(() => {
-      if (this._api) {
-        this._api.play();
-      }
-    });
+    if (this._loadPromise) {
+      this._loadPromise.then(() => {
+        if (this._api) {
+          this._api.play();
+        }
+      });
+    }
   }
 
   pause(): void {
@@ -844,7 +847,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {boolean} - Whether the video tag has an attribute of playsinline.
    */
   get playsinline(): boolean {
-    return this._config.playsinline;
+    return this._config ? this._config.playsinline : false;
   }
 
   /**

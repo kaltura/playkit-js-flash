@@ -1,7 +1,17 @@
-# Changelog
+# Change Log
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.4.2"></a>
+## [1.4.2](https://github.com/kaltura/playkit-js-flash/compare/v1.4.1...v1.4.2) (2019-12-08)
+
+
+### Bug Fixes
+
+* **FEC-9471:** slider progress bar exceeds 100% ([#20](https://github.com/kaltura/playkit-js-flash/issues/20)) ([fafad30](https://github.com/kaltura/playkit-js-flash/commit/fafad30))
+
+
+<a name="1.4.1"></a>
 ### [1.4.1](https://github.com/kaltura/playkit-js-flash/compare/v1.4.0...v1.4.1) (2019-11-28)
 
 
