@@ -34,13 +34,6 @@ class Flash extends FakeEventTarget implements IEngine {
   _api: ?FlashHLSAdapter = null;
 
   /**
-   * The src
-   * @type {string}
-   * @private
-   */
-  _src: ?string = null;
-
-  /**
    * The player config object.
    * @type {Object}
    * @private
@@ -76,19 +69,6 @@ class Flash extends FakeEventTarget implements IEngine {
   _eventManager: EventManager = null;
 
   _source: PKMediaSourceObject;
-  /**
-   * The last time detach occurred
-   * @type {number}
-   * @private
-   */
-  _lastTimeDetach: ?number = NaN;
-
-  /**
-   * The start time after attach
-   * @type {number}
-   * @private
-   */
-  _startTimeAttach: ?number = NaN;
 
   /**
    * The state of player mute
@@ -195,21 +175,15 @@ class Flash extends FakeEventTarget implements IEngine {
   constructor(source: PKMediaSourceObject, config: Object) {
     super();
     this._el = Utils.Dom.createElement('div');
-    this.init(source, config);
+    this._init(source, config);
   }
 
   attachMediaSource(): void {
-    this.init(this._source, this._config);
-    this._startTimeAttach = this._lastTimeDetach;
-    this._lastTimeDetach = null;
+    this._api.attachMediaSource();
   }
 
   detachMediaSource(): void {
-    this._lastTimeDetach = this.currentTime;
-    const {_source, _config} = this;
-    this.destroy();
-    Utils.Object.mergeDeep(this, {_source, _config});
-    this._loadPromise = null;
+    this._api.detachMediaSource();
   }
 
   hideTextTrack(): void {}
@@ -220,7 +194,7 @@ class Flash extends FakeEventTarget implements IEngine {
 
   exitPictureInPicture(): void {}
 
-  init(source: PKMediaSourceObject, config: Object): void {
+  _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
     this._config = config;
     this._source = source;
@@ -235,14 +209,11 @@ class Flash extends FakeEventTarget implements IEngine {
     if (this._api) {
       this._api.reset();
     }
-    if (this._eventManager) {
-      this._eventManager.removeAll();
-    }
 
-    this._src = null;
+    this._config = null;
+    this._source = null;
     this._volume = null;
     this._volumeBeforeMute = null;
-    this._muted = this.defaultMuted;
   }
 
   /**
@@ -253,7 +224,7 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   restore(source: PKMediaSourceObject, config: Object): void {
     this.destroy();
-    this.init(source, config);
+    this._init(source, config);
   }
 
   /**
@@ -308,7 +279,6 @@ class Flash extends FakeEventTarget implements IEngine {
       this._api.destroy();
       this._eventManager.destroy();
       this.reset();
-      this._api = null;
     }
   }
 
@@ -413,7 +383,9 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   set src(source: string): void {
-    this._src = source;
+    if (this._api) {
+      this._api.src = source;
+    }
   }
 
   /**
@@ -422,10 +394,9 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get src(): string {
-    if (this._loadPromise && this._src) {
-      return this._src;
+    if (this._api) {
+      return this._api.src;
     }
-    return '';
   }
 
   /**
@@ -439,9 +410,8 @@ class Flash extends FakeEventTarget implements IEngine {
       Flash._logger.warn('Missing API - Flash is not ready');
       return Promise.reject('Flash is not ready');
     }
-    this._src = this._source ? this._source.url : null;
-    const playbackStartTime = this._startTimeAttach || startTime || 0;
-    this._loadPromise = this._api.load(playbackStartTime);
+    this.src = this._source ? this._source.url : null;
+    this._loadPromise = this._api.load(startTime);
     return this._loadPromise;
   }
 

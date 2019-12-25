@@ -22,6 +22,20 @@ class FlashHLSAdapter extends FakeEventTarget {
   _apiLoadPromise: Promise<*>;
   _apiLoadResolve: any;
 
+  /**
+   * The last time detach occurred
+   * @type {number}
+   * @private
+   */
+  _lastTimeDetach: number = NaN;
+
+  /**
+   * The start time after attach
+   * @type {number}
+   * @private
+   */
+  _startTimeAttach: number = NaN;
+
   static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
     const objTag = '<object type="application/x-shockwave-flash" ';
     let flashVarsString = '';
@@ -234,9 +248,8 @@ class FlashHLSAdapter extends FakeEventTarget {
   load(startTime: ?number): Promise<Object> {
     this._loadPromise = new Promise(resolve => {
       this._resolveLoad = resolve;
-      if (startTime) {
-        this._startTime = startTime;
-      }
+      this._startTime = this._startTimeAttach || startTime || -1;
+      this._startTimeAttach = NaN;
       this._apiLoadPromise.then(() => {
         this._api.load(this._src.url);
       });
@@ -248,7 +261,7 @@ class FlashHLSAdapter extends FakeEventTarget {
     this._apiLoadPromise.then(() => {
       if (this._firstPlay) {
         this.ended = false;
-        this._api.play(this._startTime ? this._startTime : -1);
+        this._api.play(this._startTime);
       } else {
         this._api.resume();
       }
@@ -345,8 +358,49 @@ class FlashHLSAdapter extends FakeEventTarget {
     this.watched = null;
     this._startTime = null;
     this._firstPlay = true;
-    this._initialVolume = null;
-    this._loadReported = false;
+  }
+
+  /**
+   * attach media - return the media source to handle the video tag
+   * @public
+   * @returns {void}
+   */
+  attachMediaSource(): void {
+    this.attach();
+    this._startTimeAttach = this._lastTimeDetach;
+    this._lastTimeDetach = NaN;
+  }
+  /**
+   * detach media - will remove the media source from handling the video
+   * @public
+   * @returns {void}
+   */
+  detachMediaSource(): void {
+    this._lastTimeDetach = this.currentTime;
+    this.destroy();
+    this._loadPromise = null;
+  }
+
+  /**
+   * Set a source.
+   * @param {string} source - Source to set.
+   * @public
+   * @returns {void}
+   */
+  set src(source: string): void {
+    this._src.url = source;
+  }
+
+  /**
+   * Get the source url.
+   * @returns {string} - The source url.
+   * @public
+   */
+  get src(): string {
+    if (this._loadPromise && this._src.url) {
+      return this._src.url;
+    }
+    return '';
   }
 }
 
