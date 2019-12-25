@@ -112,7 +112,6 @@ class FlashHLSAdapter extends FakeEventTarget {
     //to hide the text tracks simulate event like happened in hls.js
     this._trigger(EventType.TEXT_CUE_CHANGED, {cues: []});
     this._trigger(EventType.TIME_UPDATE);
-    this.reset();
   }
 
   attach(): HTMLDivElement {
@@ -378,6 +377,7 @@ class FlashHLSAdapter extends FakeEventTarget {
   detachMediaSource(): void {
     this._lastTimeDetach = this.currentTime;
     this.destroy();
+    this._firstPlay = true;
     this._loadPromise = null;
   }
 
