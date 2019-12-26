@@ -106,6 +106,8 @@ class FlashHLSAdapter extends FakeEventTarget {
     if (this._el && this._el.parentNode) {
       this._el.innerHTML = '';
     }
+    this._startTimeAttach = NaN;
+    this._lastTimeDetach = NaN;
     //simulate the event sequence like video tag
     this._trigger(EventType.ABORT);
     this._trigger(EventType.EMPTIED);
@@ -354,6 +356,8 @@ class FlashHLSAdapter extends FakeEventTarget {
     this.duration = null;
     this.buffer = null;
     this.watched = null;
+    this._startTimeAttach = NaN;
+    this._lastTimeDetach = NaN;
   }
 
   /**
