@@ -8,9 +8,9 @@ class FlashHLSAdapter extends FakeEventTarget {
   _el: HTMLDivElement;
   _api: FlashAPI;
   _src: PKMediaSourceObject;
-  _startTime: ?number;
+  _startTime: number;
   _firstPlay: boolean = true;
-  _initialVolume: ?number;
+  _initialVolume: number;
   _loadReported: boolean = false;
   paused: boolean = true;
   ended: boolean = false;
@@ -18,7 +18,7 @@ class FlashHLSAdapter extends FakeEventTarget {
   duration: ?number;
   buffer: ?number;
   watched: ?number;
-  currentTime: ?number;
+  currentTime: number;
   _apiLoadPromise: Promise<*>;
   _apiLoadResolve: any;
 
@@ -352,11 +352,8 @@ class FlashHLSAdapter extends FakeEventTarget {
     this.ended = false;
     this.seeking = false;
     this.duration = null;
-    this.currentTime = null;
     this.buffer = null;
     this.watched = null;
-    this._startTime = null;
-    this._firstPlay = true;
   }
 
   /**

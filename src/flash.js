@@ -38,7 +38,7 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {Object}
    * @private
    */
-  _config: Object;
+  _config: ?Object;
 
   /**
    * Promise when load finished
@@ -68,7 +68,7 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   _eventManager: EventManager = null;
 
-  _source: PKMediaSourceObject;
+  _source: ?PKMediaSourceObject;
 
   /**
    * The state of player mute
@@ -179,11 +179,15 @@ class Flash extends FakeEventTarget implements IEngine {
   }
 
   attachMediaSource(): void {
-    this._api.attachMediaSource();
+    if (this._api) {
+      this._api.attachMediaSource();
+    }
   }
 
   detachMediaSource(): void {
-    this._api.detachMediaSource();
+    if (this._api) {
+      this._api.detachMediaSource();
+    }
   }
 
   hideTextTrack(): void {}
@@ -397,6 +401,7 @@ class Flash extends FakeEventTarget implements IEngine {
     if (this._api) {
       return this._api.src;
     }
+    return '';
   }
 
   /**
@@ -410,7 +415,7 @@ class Flash extends FakeEventTarget implements IEngine {
       Flash._logger.warn('Missing API - Flash is not ready');
       return Promise.reject('Flash is not ready');
     }
-    this.src = this._source ? this._source.url : null;
+    this.src = this._source ? this._source.url : '';
     this._loadPromise = this._api.load(startTime);
     return this._loadPromise;
   }
