@@ -59,14 +59,14 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {?number}
    * @private
    */
-  _volume: ?number = NaN;
+  _volume: number = NaN;
 
   /**
    * volume value before mute
    * @type {?number}
    * @private
    */
-  _volumeBeforeMute: ?number = NaN;
+  _volumeBeforeMute: number = NaN;
 
   /**
    * The event manager of the engine.
@@ -214,8 +214,9 @@ class Flash extends FakeEventTarget implements IEngine {
     }
     this._src = null;
     this._config = null;
-    this._volume = null;
-    this._volumeBeforeMute = null;
+    this._muted = this.defaultMuted;
+    this._volume = NaN;
+    this._volumeBeforeMute = NaN;
     this._srcToLoad = null;
   }
 
