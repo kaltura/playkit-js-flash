@@ -108,7 +108,7 @@ class FlashHLSAdapter extends FakeEventTarget {
     }
     this._startTimeAttach = NaN;
     this._lastTimeDetach = NaN;
-    this._api = null;
+    delete this._api;
     //simulate the event sequence like video tag
     this._trigger(EventType.ABORT);
     this._trigger(EventType.EMPTIED);
