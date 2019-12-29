@@ -68,8 +68,6 @@ class Flash extends FakeEventTarget implements IEngine {
    */
   _eventManager: EventManager = null;
 
-  _source: ?PKMediaSourceObject;
-
   /**
    * The state of player mute
    * @type {boolean}
@@ -201,7 +199,6 @@ class Flash extends FakeEventTarget implements IEngine {
   _init(source: PKMediaSourceObject, config: Object): void {
     this._eventManager = new EventManager();
     this._config = config;
-    this._source = source;
     if (this._el) {
       this._api = new FlashHLSAdapter(source, config, this._el);
       this._api.attach();
@@ -215,7 +212,6 @@ class Flash extends FakeEventTarget implements IEngine {
     }
 
     this._config = null;
-    this._source = null;
     this._muted = this.defaultMuted;
     this._volume = NaN;
     this._volumeBeforeMute = NaN;
@@ -416,7 +412,6 @@ class Flash extends FakeEventTarget implements IEngine {
       Flash._logger.warn('Missing API - Flash is not ready');
       return Promise.reject('Flash is not ready');
     }
-    this.src = this._source ? this._source.url : '';
     this._loadPromise = this._api.load(startTime);
     return this._loadPromise;
   }

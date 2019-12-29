@@ -108,11 +108,14 @@ class FlashHLSAdapter extends FakeEventTarget {
     }
     this._startTimeAttach = NaN;
     this._lastTimeDetach = NaN;
+    this._api = null;
     //simulate the event sequence like video tag
     this._trigger(EventType.ABORT);
     this._trigger(EventType.EMPTIED);
     //to hide the text tracks simulate event like happened in hls.js
     this._trigger(EventType.TEXT_CUE_CHANGED, {cues: []});
+
+    this.currentTime = NaN;
     this._trigger(EventType.TIME_UPDATE);
   }
 
@@ -376,8 +379,9 @@ class FlashHLSAdapter extends FakeEventTarget {
    * @returns {void}
    */
   detachMediaSource(): void {
-    this._lastTimeDetach = this.currentTime;
+    const currentTime = this.currentTime;
     this.destroy();
+    this._lastTimeDetach = currentTime;
     this._firstPlay = true;
     this._loadPromise = null;
   }
