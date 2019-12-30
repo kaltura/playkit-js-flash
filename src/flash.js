@@ -35,14 +35,14 @@ class Flash extends FakeEventTarget implements IEngine {
 
   /**
    * The player config object.
-   * @type {Object}
+   * @type {?Object}
    * @private
    */
   _config: ?Object;
 
   /**
    * Promise when load finished
-   * @type {Promise<*>}
+   * @type {?Promise<*>}
    * @private
    */
   _loadPromise: ?Promise<*> = null;
@@ -63,7 +63,7 @@ class Flash extends FakeEventTarget implements IEngine {
 
   /**
    * The event manager of the engine.
-   * @type {EventManager}
+   * @type {?EventManager}
    * @private
    */
   _eventManager: EventManager = null;
