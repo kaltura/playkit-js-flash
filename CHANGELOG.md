@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.4.3"></a>
+## [1.4.3](https://github.com/kaltura/playkit-js-flash/compare/v1.4.1...v1.4.3) (2019-12-30)
+
+
+### Bug Fixes
+
+* **FEC-9471:** slider progress bar exceeds 100% ([#20](https://github.com/kaltura/playkit-js-flash/issues/20)) ([fafad30](https://github.com/kaltura/playkit-js-flash/commit/fafad30))
+* **FEC-9523:** add attach detach implemention ([#21](https://github.com/kaltura/playkit-js-flash/issues/21)) ([ba59a7e](https://github.com/kaltura/playkit-js-flash/commit/ba59a7e))
+* **FEC-9565:** playlist doesn't save the muted value from previous item ([#23](https://github.com/kaltura/playkit-js-flash/issues/23)) ([2d72e06](https://github.com/kaltura/playkit-js-flash/commit/2d72e06))
+
+
+
 <a name="1.4.2"></a>
 ## [1.4.2](https://github.com/kaltura/playkit-js-flash/compare/v1.4.1...v1.4.2) (2019-12-08)
 
