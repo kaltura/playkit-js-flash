@@ -6,7 +6,7 @@ import DefaultConfig from './default-config';
 class FlashHLSAdapter extends FakeEventTarget {
   _config: Object;
   _el: HTMLDivElement;
-  _api: FlashAPI;
+  _api: ?FlashAPI;
   _src: PKMediaSourceObject;
   _startTime: number;
   _firstPlay: boolean = true;
@@ -108,7 +108,7 @@ class FlashHLSAdapter extends FakeEventTarget {
     }
     this._startTimeAttach = NaN;
     this._lastTimeDetach = NaN;
-    delete this._api;
+    this._api = null;
     //simulate the event sequence like video tag
     this._trigger(EventType.ABORT);
     this._trigger(EventType.EMPTIED);
@@ -132,8 +132,10 @@ class FlashHLSAdapter extends FakeEventTarget {
         if (this._initialVolume != null) {
           this.volume(this._initialVolume);
         }
-        if (this._config.debug) {
+        if (this._api && this._config.debug) {
           this._api.playerSetLogDebug(true);
+        }
+        if (this._api && this._config.debug) {
           this._api.playerSetLogDebug2(true);
         }
         this._apiLoadResolve();
@@ -172,39 +174,41 @@ class FlashHLSAdapter extends FakeEventTarget {
         this._trigger(EventType.ERROR, error);
       },
       manifest: (duration, levels_) => {
-        let audioTracks = this._api.getAudioTrackList();
-        const parsedAudioTracks = [];
-        if (audioTracks) {
-          for (let i = 0; i < audioTracks.length; i++) {
-            const settings = {
-              id: audioTracks[i].id,
-              active: audioTracks[i].isDefault,
-              label: audioTracks[i].title,
-              language: audioTracks[i].title, //TODO: Get language?!?
+        if (this._api) {
+          let audioTracks = this._api.getAudioTrackList();
+          const parsedAudioTracks = [];
+          if (audioTracks) {
+            for (let i = 0; i < audioTracks.length; i++) {
+              const settings = {
+                id: audioTracks[i].id,
+                active: audioTracks[i].isDefault,
+                label: audioTracks[i].title,
+                language: audioTracks[i].title, //TODO: Get language?!?
+                index: i
+              };
+              parsedAudioTracks.push(new AudioTrack(settings));
+            }
+          }
+
+          let videoTracks = [];
+          for (let i = 0; i < levels_.length; i++) {
+            // Create video tracks
+            let settings = {
+              active: 0 === i,
+              bandwidth: levels_[i].bitrate,
+              width: levels_[i].width,
+              height: levels_[i].height,
+              language: '',
               index: i
             };
-            parsedAudioTracks.push(new AudioTrack(settings));
+            videoTracks.push(new VideoTrack(settings));
           }
+          if (this._resolveLoad) {
+            this._resolveLoad({tracks: videoTracks.concat(parsedAudioTracks)});
+            this._resolveLoad = null;
+          }
+          this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
         }
-
-        let videoTracks = [];
-        for (let i = 0; i < levels_.length; i++) {
-          // Create video tracks
-          let settings = {
-            active: 0 === i,
-            bandwidth: levels_[i].bitrate,
-            width: levels_[i].width,
-            height: levels_[i].height,
-            language: '',
-            index: i
-          };
-          videoTracks.push(new VideoTrack(settings));
-        }
-        if (this._resolveLoad) {
-          this._resolveLoad({tracks: videoTracks.concat(parsedAudioTracks)});
-          this._resolveLoad = null;
-        }
-        this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
       },
       seekState: newState => {
         if (this._firstPlay) {
@@ -255,7 +259,9 @@ class FlashHLSAdapter extends FakeEventTarget {
       this._startTime = this._startTimeAttach || startTime || -1;
       this._startTimeAttach = NaN;
       this._apiLoadPromise.then(() => {
-        this._api.load(this._src.url);
+        if (this._api) {
+          this._api.load(this._src.url);
+        }
       });
     });
     return this._loadPromise;
@@ -263,13 +269,15 @@ class FlashHLSAdapter extends FakeEventTarget {
 
   play() {
     this._apiLoadPromise.then(() => {
-      if (this._firstPlay) {
-        this.ended = false;
-        this._api.play(this._startTime);
-      } else {
-        this._api.resume();
+      if (this._api) {
+        if (this._firstPlay) {
+          this.ended = false;
+          this._api.play(this._startTime);
+        } else {
+          this._api.resume();
+        }
+        this._trigger(EventType.PLAY);
       }
-      this._trigger(EventType.PLAY);
     });
   }
 
@@ -311,10 +319,10 @@ class FlashHLSAdapter extends FakeEventTarget {
   }
 
   selectVideoTrack(videoTrack: VideoTrack): void {
+    if (this.isABR()) {
+      this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'manual'});
+    }
     if (this._api) {
-      if (this.isABR()) {
-        this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'manual'});
-      }
       this._api.setCurrentLevel(videoTrack.index);
       this._trigger(EventType.VIDEO_TRACK_CHANGED, {selectedVideoTrack: videoTrack});
     }
