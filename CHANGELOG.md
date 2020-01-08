@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.4.4"></a>
+## [1.4.4](https://github.com/kaltura/playkit-js-flash/compare/v1.4.3...v1.4.4) (2020-01-08)
+
+
+### Bug Fixes
+
+* **FEC-9603:** timing issue after reinitialise the flash api ([#25](https://github.com/kaltura/playkit-js-flash/issues/25)) ([7c8e586](https://github.com/kaltura/playkit-js-flash/commit/7c8e586))
+
+
+
 <a name="1.4.3"></a>
 ## [1.4.3](https://github.com/kaltura/playkit-js-flash/compare/v1.4.1...v1.4.3) (2019-12-30)
 
