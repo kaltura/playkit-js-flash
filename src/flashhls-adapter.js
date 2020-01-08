@@ -140,7 +140,9 @@ class FlashHLSAdapter extends FakeEventTarget {
         if (this._api && this._config.debug) {
           this._api.playerSetLogDebug2(true);
         }
-        if (this._apiLoadResolve) this._apiLoadResolve();
+        if (this._apiLoadResolve) {
+          this._apiLoadResolve();
+        }
       },
       levelLoaded: loadmetrics => {
         if (!this._loadReported) {
