@@ -19,8 +19,8 @@ class FlashHLSAdapter extends FakeEventTarget {
   buffer: ?number;
   watched: ?number;
   currentTime: number;
-  _apiLoadPromise: Promise<*>;
-  _apiLoadResolve: any;
+  _apiLoadPromise: ?Promise<*>;
+  _apiLoadResolve: ?any;
 
   /**
    * The last time detach occurred
@@ -109,6 +109,8 @@ class FlashHLSAdapter extends FakeEventTarget {
     this._startTimeAttach = NaN;
     this._lastTimeDetach = NaN;
     this._api = null;
+    this._apiLoadPromise = null;
+    this._apiLoadResolve = null;
     //simulate the event sequence like video tag
     this._trigger(EventType.ABORT);
     this._trigger(EventType.EMPTIED);
@@ -138,7 +140,7 @@ class FlashHLSAdapter extends FakeEventTarget {
         if (this._api && this._config.debug) {
           this._api.playerSetLogDebug2(true);
         }
-        this._apiLoadResolve();
+        if (this._apiLoadResolve) this._apiLoadResolve();
       },
       levelLoaded: loadmetrics => {
         if (!this._loadReported) {
@@ -258,27 +260,31 @@ class FlashHLSAdapter extends FakeEventTarget {
       this._resolveLoad = resolve;
       this._startTime = this._startTimeAttach || startTime || -1;
       this._startTimeAttach = NaN;
-      this._apiLoadPromise.then(() => {
-        if (this._api) {
-          this._api.load(this._src.url);
-        }
-      });
+      if (this._apiLoadPromise) {
+        this._apiLoadPromise.then(() => {
+          if (this._api) {
+            this._api.load(this._src.url);
+          }
+        });
+      }
     });
     return this._loadPromise;
   }
 
   play() {
-    this._apiLoadPromise.then(() => {
-      if (this._api) {
-        if (this._firstPlay) {
-          this.ended = false;
-          this._api.play(this._startTime);
-        } else {
-          this._api.resume();
+    if (this._apiLoadPromise) {
+      this._apiLoadPromise.then(() => {
+        if (this._api) {
+          if (this._firstPlay) {
+            this.ended = false;
+            this._api.play(this._startTime);
+          } else {
+            this._api.resume();
+          }
+          this._trigger(EventType.PLAY);
         }
-        this._trigger(EventType.PLAY);
-      }
-    });
+      });
+    }
   }
 
   pause() {
@@ -377,6 +383,9 @@ class FlashHLSAdapter extends FakeEventTarget {
    * @returns {void}
    */
   attachMediaSource(): void {
+    this._apiLoadPromise = new Promise(resolve => {
+      this._apiLoadResolve = resolve;
+    });
     this.attach();
     this._startTimeAttach = this._lastTimeDetach;
     this._lastTimeDetach = NaN;
