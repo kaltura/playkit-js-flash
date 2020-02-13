@@ -1,13 +1,10 @@
 // @flow
-import {registerEngine} from '@playkit-js/playkit-js';
 import {Flash} from './flash';
 
 declare var __VERSION__: string;
 declare var __NAME__: string;
 
-export {Flash as Engine};
-export {__VERSION__ as VERSION, __NAME__ as NAME};
+const VERSION = __VERSION__;
+const NAME = __NAME__;
 
-if (Flash.isSupported()) {
-  registerEngine(Flash.id, Flash);
-}
+export {Flash as Engine, VERSION, NAME};
