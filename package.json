@@ -76,7 +76,7 @@
     "uglifyjs-webpack-plugin": "^0.4.3",
     "val-loader": "^1.1.0",
     "webpack": "3.6.0",
-    "webpack-dev-server": "2.5.0"
+    "webpack-dev-server": "3.1.11"
   },
   "peerDependencies": {
     "@playkit-js/playkit-js": "^0.41.0"
