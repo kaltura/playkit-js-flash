@@ -6,7 +6,7 @@ import DefaultConfig from './default-config';
 class FlashHLSAdapter extends FakeEventTarget {
   _config: Object;
   _el: HTMLDivElement;
-  _api: FlashAPI;
+  _api: ?FlashAPI;
   _src: PKMediaSourceObject;
   _startTime: number;
   _firstPlay: boolean = true;
@@ -18,9 +18,23 @@ class FlashHLSAdapter extends FakeEventTarget {
   duration: ?number;
   buffer: ?number;
   watched: ?number;
-  currentTime: ?number;
-  _apiLoadPromise: Promise<*>;
-  _apiLoadResolve: any;
+  currentTime: number;
+  _apiLoadPromise: ?Promise<*>;
+  _apiLoadResolve: ?any;
+
+  /**
+   * The last time detach occurred
+   * @type {number}
+   * @private
+   */
+  _lastTimeDetach: number = NaN;
+
+  /**
+   * The start time after attach
+   * @type {number}
+   * @private
+   */
+  _startTimeAttach: number = NaN;
 
   static getFlashCode(swf: string, flashVars: Object, params: Object, attributes: Object): string {
     const objTag = '<object type="application/x-shockwave-flash" ';
@@ -92,6 +106,19 @@ class FlashHLSAdapter extends FakeEventTarget {
     if (this._el && this._el.parentNode) {
       this._el.innerHTML = '';
     }
+    this._startTimeAttach = NaN;
+    this._lastTimeDetach = NaN;
+    this._api = null;
+    this._apiLoadPromise = null;
+    this._apiLoadResolve = null;
+    //simulate the event sequence like video tag
+    this._trigger(EventType.ABORT);
+    this._trigger(EventType.EMPTIED);
+    //to hide the text tracks simulate event like happened in hls.js
+    this._trigger(EventType.TEXT_CUE_CHANGED, {cues: []});
+
+    this.currentTime = NaN;
+    this._trigger(EventType.TIME_UPDATE);
   }
 
   attach(): HTMLDivElement {
@@ -107,11 +134,15 @@ class FlashHLSAdapter extends FakeEventTarget {
         if (this._initialVolume != null) {
           this.volume(this._initialVolume);
         }
-        if (this._config.debug) {
+        if (this._api && this._config.debug) {
           this._api.playerSetLogDebug(true);
+        }
+        if (this._api && this._config.debug) {
           this._api.playerSetLogDebug2(true);
         }
-        this._apiLoadResolve();
+        if (this._apiLoadResolve) {
+          this._apiLoadResolve();
+        }
       },
       levelLoaded: loadmetrics => {
         if (!this._loadReported) {
@@ -147,39 +178,41 @@ class FlashHLSAdapter extends FakeEventTarget {
         this._trigger(EventType.ERROR, error);
       },
       manifest: (duration, levels_) => {
-        let audioTracks = this._api.getAudioTrackList();
-        const parsedAudioTracks = [];
-        if (audioTracks) {
-          for (let i = 0; i < audioTracks.length; i++) {
-            const settings = {
-              id: audioTracks[i].id,
-              active: audioTracks[i].isDefault,
-              label: audioTracks[i].title,
-              language: audioTracks[i].title, //TODO: Get language?!?
+        if (this._api) {
+          let audioTracks = this._api.getAudioTrackList();
+          const parsedAudioTracks = [];
+          if (audioTracks) {
+            for (let i = 0; i < audioTracks.length; i++) {
+              const settings = {
+                id: audioTracks[i].id,
+                active: audioTracks[i].isDefault,
+                label: audioTracks[i].title,
+                language: audioTracks[i].title, //TODO: Get language?!?
+                index: i
+              };
+              parsedAudioTracks.push(new AudioTrack(settings));
+            }
+          }
+
+          let videoTracks = [];
+          for (let i = 0; i < levels_.length; i++) {
+            // Create video tracks
+            let settings = {
+              active: 0 === i,
+              bandwidth: levels_[i].bitrate,
+              width: levels_[i].width,
+              height: levels_[i].height,
+              language: '',
               index: i
             };
-            parsedAudioTracks.push(new AudioTrack(settings));
+            videoTracks.push(new VideoTrack(settings));
           }
+          if (this._resolveLoad) {
+            this._resolveLoad({tracks: videoTracks.concat(parsedAudioTracks)});
+            this._resolveLoad = null;
+          }
+          this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
         }
-
-        let videoTracks = [];
-        for (let i = 0; i < levels_.length; i++) {
-          // Create video tracks
-          let settings = {
-            active: 0 === i,
-            bandwidth: levels_[i].bitrate,
-            width: levels_[i].width,
-            height: levels_[i].height,
-            language: '',
-            index: i
-          };
-          videoTracks.push(new VideoTrack(settings));
-        }
-        if (this._resolveLoad) {
-          this._resolveLoad({tracks: videoTracks.concat(parsedAudioTracks)});
-          this._resolveLoad = null;
-        }
-        this._trigger(EventType.TRACKS_CHANGED, {tracks: videoTracks.concat(parsedAudioTracks)});
       },
       seekState: newState => {
         if (this._firstPlay) {
@@ -227,26 +260,33 @@ class FlashHLSAdapter extends FakeEventTarget {
   load(startTime: ?number): Promise<Object> {
     this._loadPromise = new Promise(resolve => {
       this._resolveLoad = resolve;
-      if (startTime) {
-        this._startTime = startTime;
+      this._startTime = this._startTimeAttach || startTime || -1;
+      this._startTimeAttach = NaN;
+      if (this._apiLoadPromise) {
+        this._apiLoadPromise.then(() => {
+          if (this._api) {
+            this._api.load(this._src.url);
+          }
+        });
       }
-      this._apiLoadPromise.then(() => {
-        this._api.load(this._src.url);
-      });
     });
     return this._loadPromise;
   }
 
   play() {
-    this._apiLoadPromise.then(() => {
-      if (this._firstPlay) {
-        this.ended = false;
-        this._api.play(this._startTime ? this._startTime : -1);
-      } else {
-        this._api.resume();
-      }
-      this._trigger(EventType.PLAY);
-    });
+    if (this._apiLoadPromise) {
+      this._apiLoadPromise.then(() => {
+        if (this._api) {
+          if (this._firstPlay) {
+            this.ended = false;
+            this._api.play(this._startTime);
+          } else {
+            this._api.resume();
+          }
+          this._trigger(EventType.PLAY);
+        }
+      });
+    }
   }
 
   pause() {
@@ -287,10 +327,10 @@ class FlashHLSAdapter extends FakeEventTarget {
   }
 
   selectVideoTrack(videoTrack: VideoTrack): void {
+    if (this.isABR()) {
+      this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'manual'});
+    }
     if (this._api) {
-      if (this.isABR()) {
-        this._trigger(EventType.ABR_MODE_CHANGED, {mode: 'manual'});
-      }
       this._api.setCurrentLevel(videoTrack.index);
       this._trigger(EventType.VIDEO_TRACK_CHANGED, {selectedVideoTrack: videoTrack});
     }
@@ -335,6 +375,56 @@ class FlashHLSAdapter extends FakeEventTarget {
     this.duration = null;
     this.buffer = null;
     this.watched = null;
+    this._startTimeAttach = NaN;
+    this._lastTimeDetach = NaN;
+  }
+
+  /**
+   * attach media - return the media source to handle the video tag
+   * @public
+   * @returns {void}
+   */
+  attachMediaSource(): void {
+    this._apiLoadPromise = new Promise(resolve => {
+      this._apiLoadResolve = resolve;
+    });
+    this.attach();
+    this._startTimeAttach = this._lastTimeDetach;
+    this._lastTimeDetach = NaN;
+  }
+  /**
+   * detach media - will remove the media source from handling the video
+   * @public
+   * @returns {void}
+   */
+  detachMediaSource(): void {
+    const currentTime = this.currentTime;
+    this.destroy();
+    this._lastTimeDetach = currentTime;
+    this._firstPlay = true;
+    this._loadPromise = null;
+  }
+
+  /**
+   * Set a source.
+   * @param {string} source - Source to set.
+   * @public
+   * @returns {void}
+   */
+  set src(source: string): void {
+    this._src.url = source;
+  }
+
+  /**
+   * Get the source url.
+   * @returns {string} - The source url.
+   * @public
+   */
+  get src(): string {
+    if (this._loadPromise && this._src.url) {
+      return this._src.url;
+    }
+    return '';
   }
 }
 

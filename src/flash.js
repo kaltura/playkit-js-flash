@@ -34,22 +34,15 @@ class Flash extends FakeEventTarget implements IEngine {
   _api: ?FlashHLSAdapter = null;
 
   /**
-   * The src
-   * @type {string}
-   * @private
-   */
-  _src: ?string = null;
-
-  /**
    * The player config object.
-   * @type {Object}
+   * @type {?Object}
    * @private
    */
-  _config: ?Object = null;
+  _config: ?Object;
 
   /**
    * Promise when load finished
-   * @type {Promise<*>}
+   * @type {?Promise<*>}
    * @private
    */
   _loadPromise: ?Promise<*> = null;
@@ -59,23 +52,21 @@ class Flash extends FakeEventTarget implements IEngine {
    * @type {?number}
    * @private
    */
-  _volume: ?number = NaN;
+  _volume: number = NaN;
 
   /**
    * volume value before mute
    * @type {?number}
    * @private
    */
-  _volumeBeforeMute: ?number = NaN;
+  _volumeBeforeMute: number = NaN;
 
   /**
    * The event manager of the engine.
-   * @type {EventManager}
+   * @type {?EventManager}
    * @private
    */
   _eventManager: EventManager = null;
-
-  _srcToLoad: ?string = null;
 
   /**
    * The state of player mute
@@ -185,9 +176,17 @@ class Flash extends FakeEventTarget implements IEngine {
     this._init(source, config);
   }
 
-  attachMediaSource(): void {}
+  attachMediaSource(): void {
+    if (this._api) {
+      this._api.attachMediaSource();
+    }
+  }
 
-  detachMediaSource(): void {}
+  detachMediaSource(): void {
+    if (this._api) {
+      this._api.detachMediaSource();
+    }
+  }
 
   hideTextTrack(): void {}
 
@@ -204,7 +203,6 @@ class Flash extends FakeEventTarget implements IEngine {
       this._api = new FlashHLSAdapter(source, config, this._el);
       this._api.attach();
       this._addBindings();
-      this._srcToLoad = source.url;
     }
   }
 
@@ -212,11 +210,11 @@ class Flash extends FakeEventTarget implements IEngine {
     if (this._api) {
       this._api.reset();
     }
-    this._src = null;
+
     this._config = null;
-    this._volume = null;
-    this._volumeBeforeMute = null;
-    this._srcToLoad = null;
+    this._muted = this.defaultMuted;
+    this._volume = NaN;
+    this._volumeBeforeMute = NaN;
   }
 
   /**
@@ -302,8 +300,11 @@ class Flash extends FakeEventTarget implements IEngine {
         EventType.SEEKING,
         EventType.SEEKED,
         EventType.ENDED,
+        EventType.TEXT_CUE_CHANGED,
         EventType.VIDEO_TRACK_CHANGED,
         EventType.AUDIO_TRACK_CHANGED,
+        EventType.ABORT,
+        EventType.EMPTIED,
         EventType.DURATION_CHANGE
       ];
       events.forEach(eventName => {
@@ -383,7 +384,9 @@ class Flash extends FakeEventTarget implements IEngine {
    * @returns {void}
    */
   set src(source: string): void {
-    this._src = source;
+    if (this._api) {
+      this._api.src = source;
+    }
   }
 
   /**
@@ -392,15 +395,15 @@ class Flash extends FakeEventTarget implements IEngine {
    * @public
    */
   get src(): string {
-    if (this._src) {
-      return this._src;
+    if (this._api) {
+      return this._api.src;
     }
     return '';
   }
 
   /**
    * Load media.
-   * @param {number} startTime - Optional time to start the video from.
+   * @param {?number} startTime - Optional time to start the video from.
    * @public
    * @returns {Promise<Object>} - The loaded data
    */
@@ -409,7 +412,6 @@ class Flash extends FakeEventTarget implements IEngine {
       Flash._logger.warn('Missing API - Flash is not ready');
       return Promise.reject('Flash is not ready');
     }
-    this._src = this._srcToLoad;
     this._loadPromise = this._api.load(startTime);
     return this._loadPromise;
   }

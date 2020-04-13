@@ -1,6 +1,6 @@
 {
   "name": "@playkit-js/playkit-js-flash",
-  "version": "1.4.2",
+  "version": "1.4.6",
   "main": "dist/playkit-flash.js",
   "scripts": {
     "clean": "rm -rf ./dist",
