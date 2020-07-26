@@ -44,7 +44,7 @@ class FlashHLSAdapter extends FakeEventTarget {
 
     // Convert flash vars to string
     if (flashVars) {
-      Object.getOwnPropertyNames(flashVars).forEach(function(key) {
+      Object.getOwnPropertyNames(flashVars).forEach(function (key) {
         flashVarsString += `${key}=${flashVars[key]}&amp;`;
       });
     }
@@ -66,7 +66,7 @@ class FlashHLSAdapter extends FakeEventTarget {
     );
 
     // Create param tags string
-    Object.getOwnPropertyNames(params).forEach(function(key) {
+    Object.getOwnPropertyNames(params).forEach(function (key) {
       paramsString += `<param name="${key}" value="${params[key]}" />`;
     });
 
@@ -83,7 +83,7 @@ class FlashHLSAdapter extends FakeEventTarget {
     );
 
     // Create Attributes string
-    Object.getOwnPropertyNames(attributes).forEach(function(key) {
+    Object.getOwnPropertyNames(attributes).forEach(function (key) {
       attrsString += `${key}="${attributes[key]}" `;
     });
 
@@ -249,7 +249,7 @@ class FlashHLSAdapter extends FakeEventTarget {
     };
     // Create a single global callback function and pass it's name
     // to the SWF with the name `callback` in the FlashVars parameter.
-    window.flashlsCallback = function(eventName, args) {
+    window.flashlsCallback = function (eventName, args) {
       if (flashlsEvents[eventName]) {
         flashlsEvents[eventName].apply(null, args);
       }
