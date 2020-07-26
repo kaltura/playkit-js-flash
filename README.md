@@ -5,7 +5,6 @@
 [![](https://img.shields.io/npm/v/@playkit-js/playkit-js-flash/latest.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-fkash)
 [![](https://img.shields.io/npm/v/@playkit-js/playkit-js-flash/canary.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-flash/v/canary)
 
-
 PlayKit JS Flash adapter integrates [FLASH.HLS] with the [PlayKit JS Player].
 
 PlayKit JS Flash is written in [ECMAScript6], statically analysed using [Flow] and transpiled in ECMAScript5 using [Babel].
@@ -55,11 +54,11 @@ Finally, add the bundle as a script tag in your page, and initialize the player
 <script type="text/javascript" src="/PATH/TO/FILE/playkit-js-flash.js"></script>
 <div id="player-placeholder"" style="height:360px; width:640px">
 <script type="text/javascript">
-var playerContainer = document.querySelector("#player-placeholder");
-var config = {...};
-var player = playkit.core.loadPlayer(config);
-playerContainer.appendChild(player.getView());
-player.play();
+  var playerContainer = document.querySelector("#player-placeholder");
+  var config = {...};
+  var player = playkit.core.loadPlayer(config);
+  playerContainer.appendChild(player.getView());
+  player.play();
 </script>
 ```
 
