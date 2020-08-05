@@ -1,6 +1,22 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [1.5.0](https://github.com/kaltura/playkit-js-flash/compare/v1.4.4...v1.5.0) (2020-08-05)
+
+
+### Build System
+
+* add permission missing for execution script ([#29](https://github.com/kaltura/playkit-js-flash/issues/29)) ([7a28b2f](https://github.com/kaltura/playkit-js-flash/commit/7a28b2f))
+* **FEC-9495:** update after deploy stage to ping Jenkins ([#22](https://github.com/kaltura/playkit-js-flash/issues/22)) ([3416b88](https://github.com/kaltura/playkit-js-flash/commit/3416b88))
+* github bad certificate ([#28](https://github.com/kaltura/playkit-js-flash/issues/28)) ([fc22719](https://github.com/kaltura/playkit-js-flash/commit/fc22719))
+
+
+### Features
+
+* **FEC-10290:** upgrade NPM packages ([#33](https://github.com/kaltura/playkit-js-flash/issues/33)) ([5487625](https://github.com/kaltura/playkit-js-flash/commit/5487625))
+
+
 
 <a name="1.4.6"></a>
 ## [1.4.6](https://github.com/kaltura/playkit-js-flash/compare/v1.4.5...v1.4.6) (2020-04-13)
