@@ -20,7 +20,6 @@ module.exports = {
     path: __dirname + '/dist',
     filename: '[name].js',
     library: ['playkit', 'flash'],
-    umdNamedDefine: true,
     devtoolModuleFilenameTemplate: './flash/[resource-path]'
   },
   devtool: 'source-map',
