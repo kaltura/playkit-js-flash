@@ -20,8 +20,6 @@ module.exports = {
     path: __dirname + '/dist',
     filename: '[name].js',
     library: ['playkit', 'flash'],
-    libraryTarget: 'umd',
-    umdNamedDefine: true,
     devtoolModuleFilenameTemplate: './flash/[resource-path]'
   },
   devtool: 'source-map',
@@ -51,11 +49,6 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules']
   },
   externals: {
-    '@playkit-js/playkit-js': {
-      commonjs: '@playkit-js/playkit-js',
-      commonjs2: '@playkit-js/playkit-js',
-      amd: 'playkit-js',
-      root: ['KalturaPlayer', 'core']
-    }
+    '@playkit-js/playkit-js': ['KalturaPlayer', 'core']
   }
 };
