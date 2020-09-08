@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/kaltura/playkit-js-flash/compare/v1.5.0...v2.0.0) (2020-09-08)
+
+
+### Build System
+
+* **FEC-10064:** add automatic release notes ([#37](https://github.com/kaltura/playkit-js-flash/issues/37)) ([1502e89](https://github.com/kaltura/playkit-js-flash/commit/1502e89))
+
+
+### Features
+
+* **FEC-10347:** expose kaltura player as a global variable instead of UMD ([#35](https://github.com/kaltura/playkit-js-flash/issues/35)) ([5207ce2](https://github.com/kaltura/playkit-js-flash/commit/5207ce2))
+
+
+### Tests
+
+* faster unit tests ([#36](https://github.com/kaltura/playkit-js-flash/issues/36)) ([e673b90](https://github.com/kaltura/playkit-js-flash/commit/e673b90))
+
+
+### BREAKING CHANGES
+
+* **FEC-10347:** This package is not UMD anymore
+
+Solves FEC-10347
+
+
+
 ## [1.5.0](https://github.com/kaltura/playkit-js-flash/compare/v1.4.4...v1.5.0) (2020-08-05)
 
 
