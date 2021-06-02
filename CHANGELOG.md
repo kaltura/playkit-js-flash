@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.5](https://github.com/kaltura/playkit-js-flash/compare/v2.0.4...v2.0.5) (2021-06-02)
+
+
+### Build System
+
+* **FEC-10700:** Improvement for CI/CD ([#53](https://github.com/kaltura/playkit-js-flash/issues/53)) ([b0efdaa](https://github.com/kaltura/playkit-js-flash/commit/b0efdaa))
+
+
+
 ### [2.0.4](https://github.com/kaltura/playkit-js-flash/compare/v2.0.3...v2.0.4) (2021-06-01)
 
 
