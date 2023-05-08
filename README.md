@@ -1,8 +1,8 @@
 # PlayKit JS FLASH - [FLASH] Adapter for the [PlayKit JS Player]
 
-[![Build Status](https://travis-ci.com/kaltura/playkit-js-flash.svg?branch=master)](https://travis-ci.org/kaltura/playkit-js-flash)
+[![Build Status](https://github.com/kaltura/playkit-js-flash/actions/workflows/run_canary_full_flow.yaml/badge.svg)](https://github.com/kaltura/playkit-js-flash/actions/workflows/run_canary_full_flow.yaml)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-[![](https://img.shields.io/npm/v/@playkit-js/playkit-js-flash/latest.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-fkash)
+[![](https://img.shields.io/npm/v/@playkit-js/playkit-js-flash/latest.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-flash)
 [![](https://img.shields.io/npm/v/@playkit-js/playkit-js-flash/canary.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-flash/v/canary)
 
 PlayKit JS Flash adapter integrates [FLASH.HLS] with the [PlayKit JS Player].
